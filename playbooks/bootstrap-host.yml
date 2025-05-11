@@ -79,14 +79,30 @@
         - { regexp: '^PasswordAuthentication', line: 'PasswordAuthentication no' }
       notify: Restart ssh
 
-    - name: Enable UFW and allow SSH and Tailscale
+    - name: Disable IPv6 in UFW configuration
+      lineinfile:
+        path: /etc/default/ufw
+        regexp: '^IPV6='
+        line: 'IPV6=no'
+        state: present
+      become: yes
+
+    - name: Restart UFW to apply IPv6 settings
+      service:
+        name: ufw
+        state: restarted
+      become: yes
+
+    - name: Allow SSH and Tailscale
       ufw:
         rule: allow
         port: "{{ item.port }}"
         proto: "{{ item.proto }}"
+        direction: in
       loop:
-        - { port: 22, proto: 'tcp' }
-        - { port: 41641, proto: 'udp' }
+        - { port: 22, proto: tcp }
+        - { port: 41641, proto: udp }
+      become: yes
 
     - name: Enable UFW with default deny
       ufw:

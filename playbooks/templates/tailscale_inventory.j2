@@ -13,7 +13,6 @@ def modify_tailscale_hosts(inventory_dict):
                     for hostname, host_data in group_data['hosts'].items():
                         # The host data already contains the required fields from the combine operation
                         # Just ensure we have ansible_host
-                        if 'ip' in host_data and 'ansible_host' not in host_data:
                             host_data['ansible_host'] = host_data['ip']
     return inventory_dict
 
