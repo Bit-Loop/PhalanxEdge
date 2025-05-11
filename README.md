@@ -1,37 +1,90 @@
-# Deployment Demo - Deploying with a Load Balancer
+# PhalanxEdge - Core
 
-This project builds a simple application architecture with a load balancer which distributes requests between two application servers. The load balancer is running HAProxy, and HAProxy is configured to proxy traffic served from two Apache servers. A deployment playbook is also included, to illustrate zero-downtime deployments with application servers behind HAProxy.
+**PhalanxEdge - Core** is a comprehensive automation and network management toolkit designed for modern, distributed, and privacy-focused infrastructure. It leverages open-source technologies like Ansible and Tailscale to provide seamless device discovery, dynamic inventory management, and robust security practices for edge, cloud, and hybrid environments.
 
-The infrastructure is fairly simple, with the following structure:
+---
 
-                     ------------------------
-                    | HAProxy (192.168.56.2) |
-                     ------------------------
-                               |
-                _______________________________
-               |                               |
-     -----------------------         -----------------------
-    | Apache (192.168.56.3) |       | Apache (192.168.56.4) |
-     -----------------------         -----------------------
+## What is PhalanxEdge - Core?
 
-## Building the VMs
+PhalanxEdge - Core is the foundational layer of the PhalanxEdge ecosystem. It automates the discovery and management of devices across a Tailscale mesh network, maintaining up-to-date inventories and enabling secure, auditable operations. The project is ideal for anyone seeking to simplify infrastructure management, improve visibility, and enforce strong security standards across diverse environments.
 
-  1. Download and install [VirtualBox](https://www.virtualbox.org/wiki/Downloads).
-  2. Download and install [Vagrant](http://www.vagrantup.com/downloads.html).
-  3. [Mac/Linux only] Install [Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html).
-  4. Run `ansible-galaxy install -r requirements.yml` in this directory to get the required Ansible roles.
-  5. Run `vagrant up` to build the VMs and configure the infrastructure.
+---
 
-When Vagrant is finished provisioning the VMs with Ansible, you should be able to visit `http://192.168.56.2/`, and you'll see the default Ubuntu Apache 2 'installation complete' page (loaded from one of the two backend web servers through HAProxy).
+## Features
 
-## Performing a zero-downtime deployment
+### 🔍 Automated Network Discovery
 
-An example deployment playbook is included at `playbooks/deploy.yml`. You can run this playbook with the following command:
+- Scans the Tailscale network to identify all connected devices.
+- Categorizes devices as active, offline, or exit nodes.
+- Groups devices by operating system (Linux, Windows, macOS, iOS, Android, FreeBSD, and more).
 
-    $ ansible-playbook -i inventory playbooks/deploy.yml
+### 🗂️ Dynamic Inventory Management
 
-The deployment playbook will run serially over all the webservers, and for each one, take it out of the load balancer, run the deployment (in this case, it just prints a debug message), and put it back in the load balancer once port 80 is available on the webserver.
+- Generates and maintains real-time Ansible inventories in both YAML and INI formats.
+- Backs up and validates inventories to prevent configuration drift or corruption.
+- Supports easy integration with additional playbooks and roles.
 
-## About the Author
+### 🔒 Security & Compliance
 
-This project was created by [Jeff Geerling](https://www.jeffgeerling.com/) as an example for [Ansible for DevOps](https://www.ansiblefordevops.com/).
+- **Audit Logging:** Every inventory update is logged with user, host, and timestamp.
+- **File Permissions:** Sensitive files are written with restrictive permissions.
+- **Backup & Recovery:** Automatic backup of inventories before every change.
+- **Validation:** Inventories are validated before being used, with automatic rollback on failure.
+
+### ⚡ Extensible & Modular
+
+- Modular directory structure for scalable deployments.
+- Designed for future integration with cloud APIs, monitoring, and alerting systems.
+- Easily adaptable for new device types and environments.
+
+### 📈 Reporting & Alerting
+
+- Summarizes device state changes (new, removed, online/offline transitions).
+- Optional alerting for rapid incident response.
+
+---
+
+## Security Practices
+
+- **Zero Trust Networking:** Utilizes Tailscale’s WireGuard-based mesh for encrypted, authenticated device communication.
+- **Principle of Least Privilege:** All operations are performed with minimal required permissions.
+- **Audit Trails:** All critical actions are logged for compliance and forensics.
+- **Inventory Validation:** Prevents deployment with broken or malformed inventories.
+
+---
+
+## Use Cases
+
+- **Edge Device Management:** Securely manage fleets of remote devices, IoT, and edge compute nodes.
+- **Automation:** Maintain dynamic inventories for CI/CD, blue/green deployments, and zero-downtime updates.
+- **Home Lab & Personal Cloud:** Gain visibility and control over all your devices, from laptops to Raspberry Pis.
+- **Incident Response:** Rapidly detect and respond to device state changes or unauthorized network activity.
+
+---
+
+## Future Directions
+
+- **Cloud Provider Integration:** AWS, Azure, GCP inventory and secrets management.
+- **Automated Compliance Checks:** CIS benchmarks, vulnerability scanning, and remediation.
+- **Self-Service Portal:** Web UI for inventory visualization and device management.
+- **Advanced Alerting:** Integration with messaging and monitoring platforms.
+- **Policy Enforcement:** Automated firewall, patching, and configuration drift correction.
+
+---
+
+## Getting Started
+
+1. **Clone the repository** and review the `requirements.yml` for dependencies.
+2. **Configure your Tailscale network** and ensure all devices are connected.
+3. **Run the playbooks** to bootstrap, discover, and manage your infrastructure.
+4. **Review generated inventories** in the `inventory/` directory.
+
+---
+
+## About
+
+PhalanxEdge - Core is developed and maintained with a focus on secure, scalable, and user-friendly automation for the modern edge. It is suitable for individuals, teams, and organizations looking to simplify and secure their infrastructure management.
+
+---
+
+*For more information, demos, or to discuss deployments, please contact the project maintainer.*

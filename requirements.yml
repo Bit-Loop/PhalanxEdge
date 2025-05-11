@@ -1,5 +1,0 @@
----
-roles:
-  - name: geerlingguy.firewall
-  - name: geerlingguy.haproxy
-  - name: geerlingguy.apache
