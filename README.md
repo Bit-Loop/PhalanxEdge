@@ -87,8 +87,8 @@ PhalanxEdge - Core is developed and maintained with a focus on secure, scalable,
 
 ## Playbook Flowchart
 
-> **Visual Overview:**  
-> The following flowchart illustrates the main logic and flow of the PhalanxEdge - Core playbook.
+> **Visual Overview: Tailscale**  
+> The following flowchart illustrates the main logic and flow of the PhalanxEdge - Tailscale Status playbook.
 ```mermaid
 graph TD
     A[Start] --> B1
