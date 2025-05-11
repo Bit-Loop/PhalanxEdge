@@ -85,6 +85,51 @@ PhalanxEdge - Core is the foundational layer of the PhalanxEdge ecosystem. It au
 
 PhalanxEdge - Core is developed and maintained with a focus on secure, scalable, and user-friendly automation for the modern edge. It is suitable for individuals, teams, and organizations looking to simplify and secure their infrastructure management.
 
+## Playbook Flowchart
+
+> **Visual Overview:**  
+> The following flowchart illustrates the main logic and flow of the PhalanxEdge - Core playbook.
+```mermaid
+graph TD
+    A[Start] --> B1
+    subgraph "Environment Setup"
+    B1[Create directories] --> B2[Check for device files]
+    B2 --> B3{Files exist?}
+    B3 -->|Yes| B4[Load previous device state]
+    B3 -->|No| B5[Initialize previous devices]
+    end
+    B4 --> C1
+    B5 --> C1
+    subgraph "Tailscale Data Collection"
+    C1[Collect and parse data] -->|Success| D1
+    C1 -->|Fail| C2[Handle failure]
+    C2 --> D1
+    end
+    subgraph "Device Categorization"
+    D1[Categorize devices] --> D2[Identify state changes] --> D3[Write device data files]
+    end
+    D3 --> E1
+    subgraph "Improved Inventory Management"
+    E1[Prepare inventory data] --> E2[Check inventory files]
+    E2 --> E3{Backup enabled and files exist?}
+    E3 -->|Yes| E4[Backup inventory files]
+    E4 --> E5[Generate new inventory]
+    E3 -->|No| E5
+    E5 --> E6[Write inventory files] --> E7[Validate inventory]
+    E7 -->|Pass| F1
+    E7 -->|Fail| E8[Handle validation failure]
+    E8 --> F1
+    end
+    subgraph "Status and Reporting"
+    F1[Alert on state changes if enabled] --> F2[Show summary]
+    end
+    F2 --> G[End]
+```
+
+---
+
+
+
 ---
 
 *For more information, demos, or to discuss deployments, please contact the project maintainer.*
