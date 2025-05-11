@@ -1,0 +1,304 @@
+all:
+    children:
+        tailscale:
+            children:
+                active_devices:
+                    hosts:
+                        bitcrusher:
+                            ansible_host: 100.118.160.26
+                            exit_node: false
+                            hostname: bitcrusher
+                            ip: 100.118.160.26
+                            machine_type: linux
+                            state: '-'
+                        bitloop-standard-pc-i440fx-piix-1996:
+                            ansible_host: 100.98.197.89
+                            exit_node: false
+                            hostname: bitloop-standard-pc-i440fx-piix-1996
+                            ip: 100.98.197.89
+                            machine_type: linux
+                            state: offline
+                        champ:
+                            ansible_host: 100.65.156.126
+                            exit_node: false
+                            hostname: champ
+                            ip: 100.65.156.126
+                            machine_type: linux
+                            state: offline
+                        champ-1:
+                            ansible_host: 100.114.88.124
+                            exit_node: false
+                            hostname: champ-1
+                            ip: 100.114.88.124
+                            machine_type: linux
+                            state: offline
+                        chromeos-google-octopus:
+                            ansible_host: 100.96.215.112
+                            exit_node: false
+                            hostname: chromeos-google-octopus
+                            ip: 100.96.215.112
+                            machine_type: android
+                            state: offline
+                        clockworkpi:
+                            ansible_host: 100.114.77.47
+                            exit_node: false
+                            hostname: clockworkpi
+                            ip: 100.114.77.47
+                            machine_type: linux
+                            state: offline
+                        code-serv:
+                            ansible_host: 100.112.253.73
+                            exit_node: false
+                            hostname: code-serv
+                            ip: 100.112.253.73
+                            machine_type: linux
+                            state: offline
+                        desktop-6t2mduf:
+                            ansible_host: 100.113.61.59
+                            exit_node: false
+                            hostname: desktop-6t2mduf
+                            ip: 100.113.61.59
+                            machine_type: windows
+                            state: offline
+                        google-pixel-6a:
+                            ansible_host: 100.107.229.124
+                            exit_node: false
+                            hostname: google-pixel-6a
+                            ip: 100.107.229.124
+                            machine_type: android
+                            state: offline
+                        homeassistant:
+                            ansible_host: 100.72.202.45
+                            exit_node: true
+                            hostname: homeassistant
+                            ip: 100.72.202.45
+                            machine_type: linux
+                            state: idle; offers exit node
+                        iphone:
+                            ansible_host: 100.103.47.116
+                            exit_node: false
+                            hostname: iphone
+                            ip: 100.103.47.116
+                            machine_type: iOS
+                            state: offline
+                        phalanxedge:
+                            ansible_host: 100.116.96.77
+                            exit_node: false
+                            hostname: phalanxedge
+                            ip: 100.116.96.77
+                            machine_type: linux
+                            state: '-'
+                        windeath:
+                            ansible_host: 100.79.34.40
+                            exit_node: false
+                            hostname: windeath
+                            ip: 100.79.34.40
+                            machine_type: windows
+                            state: offline
+                        x13s:
+                            ansible_host: 100.127.62.73
+                            exit_node: false
+                            hostname: x13s
+                            ip: 100.127.62.73
+                            machine_type: windows
+                            state: offline
+                exit_nodes:
+                    hosts:
+                        bitcrusher:
+                            ansible_host: 100.118.160.26
+                            exit_node: false
+                            hostname: bitcrusher
+                            ip: 100.118.160.26
+                            machine_type: linux
+                            state: '-'
+                        bitloop-standard-pc-i440fx-piix-1996:
+                            ansible_host: 100.98.197.89
+                            exit_node: false
+                            hostname: bitloop-standard-pc-i440fx-piix-1996
+                            ip: 100.98.197.89
+                            machine_type: linux
+                            state: offline
+                        champ:
+                            ansible_host: 100.65.156.126
+                            exit_node: false
+                            hostname: champ
+                            ip: 100.65.156.126
+                            machine_type: linux
+                            state: offline
+                        champ-1:
+                            ansible_host: 100.114.88.124
+                            exit_node: false
+                            hostname: champ-1
+                            ip: 100.114.88.124
+                            machine_type: linux
+                            state: offline
+                        chromeos-google-octopus:
+                            ansible_host: 100.96.215.112
+                            exit_node: false
+                            hostname: chromeos-google-octopus
+                            ip: 100.96.215.112
+                            machine_type: android
+                            state: offline
+                        clockworkpi:
+                            ansible_host: 100.114.77.47
+                            exit_node: false
+                            hostname: clockworkpi
+                            ip: 100.114.77.47
+                            machine_type: linux
+                            state: offline
+                        code-serv:
+                            ansible_host: 100.112.253.73
+                            exit_node: false
+                            hostname: code-serv
+                            ip: 100.112.253.73
+                            machine_type: linux
+                            state: offline
+                        desktop-6t2mduf:
+                            ansible_host: 100.113.61.59
+                            exit_node: false
+                            hostname: desktop-6t2mduf
+                            ip: 100.113.61.59
+                            machine_type: windows
+                            state: offline
+                        google-pixel-6a:
+                            ansible_host: 100.107.229.124
+                            exit_node: false
+                            hostname: google-pixel-6a
+                            ip: 100.107.229.124
+                            machine_type: android
+                            state: offline
+                        homeassistant:
+                            ansible_host: 100.72.202.45
+                            exit_node: true
+                            hostname: homeassistant
+                            ip: 100.72.202.45
+                            machine_type: linux
+                            state: idle; offers exit node
+                        iphone:
+                            ansible_host: 100.103.47.116
+                            exit_node: false
+                            hostname: iphone
+                            ip: 100.103.47.116
+                            machine_type: iOS
+                            state: offline
+                        phalanxedge:
+                            ansible_host: 100.116.96.77
+                            exit_node: false
+                            hostname: phalanxedge
+                            ip: 100.116.96.77
+                            machine_type: linux
+                            state: '-'
+                        windeath:
+                            ansible_host: 100.79.34.40
+                            exit_node: false
+                            hostname: windeath
+                            ip: 100.79.34.40
+                            machine_type: windows
+                            state: offline
+                        x13s:
+                            ansible_host: 100.127.62.73
+                            exit_node: false
+                            hostname: x13s
+                            ip: 100.127.62.73
+                            machine_type: windows
+                            state: offline
+                offline_devices:
+                    hosts:
+                        bitcrusher:
+                            ansible_host: 100.118.160.26
+                            exit_node: false
+                            hostname: bitcrusher
+                            ip: 100.118.160.26
+                            machine_type: linux
+                            state: '-'
+                        bitloop-standard-pc-i440fx-piix-1996:
+                            ansible_host: 100.98.197.89
+                            exit_node: false
+                            hostname: bitloop-standard-pc-i440fx-piix-1996
+                            ip: 100.98.197.89
+                            machine_type: linux
+                            state: offline
+                        champ:
+                            ansible_host: 100.65.156.126
+                            exit_node: false
+                            hostname: champ
+                            ip: 100.65.156.126
+                            machine_type: linux
+                            state: offline
+                        champ-1:
+                            ansible_host: 100.114.88.124
+                            exit_node: false
+                            hostname: champ-1
+                            ip: 100.114.88.124
+                            machine_type: linux
+                            state: offline
+                        chromeos-google-octopus:
+                            ansible_host: 100.96.215.112
+                            exit_node: false
+                            hostname: chromeos-google-octopus
+                            ip: 100.96.215.112
+                            machine_type: android
+                            state: offline
+                        clockworkpi:
+                            ansible_host: 100.114.77.47
+                            exit_node: false
+                            hostname: clockworkpi
+                            ip: 100.114.77.47
+                            machine_type: linux
+                            state: offline
+                        code-serv:
+                            ansible_host: 100.112.253.73
+                            exit_node: false
+                            hostname: code-serv
+                            ip: 100.112.253.73
+                            machine_type: linux
+                            state: offline
+                        desktop-6t2mduf:
+                            ansible_host: 100.113.61.59
+                            exit_node: false
+                            hostname: desktop-6t2mduf
+                            ip: 100.113.61.59
+                            machine_type: windows
+                            state: offline
+                        google-pixel-6a:
+                            ansible_host: 100.107.229.124
+                            exit_node: false
+                            hostname: google-pixel-6a
+                            ip: 100.107.229.124
+                            machine_type: android
+                            state: offline
+                        homeassistant:
+                            ansible_host: 100.72.202.45
+                            exit_node: true
+                            hostname: homeassistant
+                            ip: 100.72.202.45
+                            machine_type: linux
+                            state: idle; offers exit node
+                        iphone:
+                            ansible_host: 100.103.47.116
+                            exit_node: false
+                            hostname: iphone
+                            ip: 100.103.47.116
+                            machine_type: iOS
+                            state: offline
+                        phalanxedge:
+                            ansible_host: 100.116.96.77
+                            exit_node: false
+                            hostname: phalanxedge
+                            ip: 100.116.96.77
+                            machine_type: linux
+                            state: '-'
+                        windeath:
+                            ansible_host: 100.79.34.40
+                            exit_node: false
+                            hostname: windeath
+                            ip: 100.79.34.40
+                            machine_type: windows
+                            state: offline
+                        x13s:
+                            ansible_host: 100.127.62.73
+                            exit_node: false
+                            hostname: x13s
+                            ip: 100.127.62.73
+                            machine_type: windows
+                            state: offline

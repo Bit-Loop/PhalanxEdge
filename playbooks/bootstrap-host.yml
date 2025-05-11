@@ -1,0 +1,157 @@
+---
+- name: Bootstrap host for Ansible and Tailscale (hardened)
+  hosts: localhost
+  become: yes
+  vars:
+    real_user: "{{ lookup('env', 'USER') }}"
+    real_home: "/home/{{ real_user }}"
+    ansible_user: ansible
+    output_dir: "{{ real_home }}/.tailscale/status"
+    inventory_dir: "{{ real_home }}/.ansible/inventory"
+    playbook_dir: "{{ real_home }}/.ansible/playbooks"
+    tailscale_audit_logrotate_path: /etc/logrotate.d/tailscale_audit
+
+  pre_tasks:
+    - name: Ensure dedicated ansible user exists
+      user:
+        name: "{{ ansible_user }}"
+        shell: /bin/bash
+        create_home: yes
+        groups: sudo
+        append: yes
+
+  tasks:
+    - name: Update apt cache and upgrade packages
+      apt:
+        update_cache: yes
+        upgrade: dist
+
+    - name: Install required packages
+      apt:
+        name:
+          - python3
+          - grc
+          - ufw
+          - net-tools
+          - jq
+          - curl
+          - git
+          - logrotate
+          - tailscale
+          - bash-completion
+          - unzip
+          - wget
+          - htop
+          - lsof
+          - tree
+          - tmux
+          - vim
+          - nano
+          - rsync
+          - ca-certificates
+          - software-properties-common
+          - aide
+          - fail2ban
+        state: present
+
+    - name: Ensure directories exist with correct permissions
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0750'
+        owner: "{{ real_user }}"
+        group: "{{ real_user }}"
+      loop:
+        - "{{ output_dir }}"
+        - "{{ inventory_dir }}"
+        - "{{ playbook_dir }}"
+      become: yes
+
+    - name: Harden SSH config (disable root login, password auth)
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+        state: present
+        backup: yes
+      loop:
+        - { regexp: '^PermitRootLogin', line: 'PermitRootLogin no' }
+        - { regexp: '^PasswordAuthentication', line: 'PasswordAuthentication no' }
+      notify: Restart ssh
+
+    - name: Enable UFW and allow SSH and Tailscale
+      ufw:
+        rule: allow
+        port: "{{ item.port }}"
+        proto: "{{ item.proto }}"
+      loop:
+        - { port: 22, proto: 'tcp' }
+        - { port: 41641, proto: 'udp' }
+
+    - name: Enable UFW with default deny
+      ufw:
+        state: enabled
+        policy: deny
+
+    - name: Ensure fail2ban is enabled and started
+      service:
+        name: fail2ban
+        state: started
+        enabled: yes
+
+    - name: Ensure AIDE is initialized
+      command: aideinit
+      args:
+        creates: /var/lib/aide/aide.db.new
+
+    - name: Install logrotate config for Tailscale audit logs
+      copy:
+        content: |
+          {{ output_dir }}/audit_log_*.log {
+              rotate 7
+              daily
+              missingok
+              notifempty
+              compress
+              delaycompress
+              copytruncate
+          }
+        dest: "{{ tailscale_audit_logrotate_path }}"
+        mode: '0644'
+      notify: Reload logrotate
+
+    - name: Ensure git is initialized for monitoring
+      command: git init
+      args:
+        chdir: "{{ playbook_dir }}"
+      register: git_init_result
+      changed_when: "'Reinitialized existing Git repository' not in git_init_result.stdout"
+
+    - name: Ensure .gitignore exists for sensitive files
+      copy:
+        dest: "{{ playbook_dir }}/.gitignore"
+        content: |
+          *.log
+          *.bak
+          *.vault
+          .vault_pass.txt
+          .ansible/
+          .tailscale/
+        mode: '0644'
+
+    - name: Ensure logrotate is enabled
+      service:
+        name: logrotate
+        state: started
+        enabled: yes
+
+  handlers:
+    - name: Restart ssh
+      service:
+        name: ssh
+        state: restarted
+
+    - name: Reload logrotate
+      service:
+        name: logrotate
+        state: restarted

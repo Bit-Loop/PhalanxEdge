@@ -1,0 +1,365 @@
+---
+# Import the bootstrap playbook first to ensure all system dependencies
+# and directories are properly set up before running this playbook.
+# Security note: The bootstrap playbook runs with elevated privileges.
+- import_playbook: bootstrap-host.yml
+
+# Main play: This handles all Tailscale network discovery, monitoring,
+# and inventory generation tasks without requiring root privileges for most operations.
+- name: Scrape Tailscale status, track state changes, and update inventory
+  hosts: localhost  # Run locally - no SSH connection required
+  gather_facts: no  # Skip fact gathering to improve performance
+  strategy: free    # Allow independent task execution for faster processing
+
+  # Define variables used throughout the playbook
+  # Security note: Store sensitive data in tailscale_secure.yml and encrypt with ansible-vault
+  vars:
+    # Use real_user/real_home pattern to ensure correct permissions when running with 'become'
+    real_user: "{{ lookup('env', 'USER') }}"  # Capture the user who ran the playbook
+    real_home: "/home/{{ real_user }}"        # Define their home directory
+    
+    # Define directory paths explicitly to avoid path traversal vulnerabilities
+    output_dir: "{{ real_home }}/.tailscale/status"  # Where status info and logs are stored
+    inventory_dir: "{{ real_home }}/.ansible/inventory"  # Where inventory files are stored
+    playbook_dir: "{{ real_home }}/.ansible/playbooks"   # Where playbooks are stored
+    
+    # Define the inventory file location - will contain all Tailscale hosts in YAML format
+    inventory_file: "{{ inventory_dir }}/tailscale.yml"
+    
+    # Pattern to match Tailscale IPs - by default they use 100.x.x.x
+    # Security note: Validate this pattern regularly as Tailscale may change their IP allocation
+    tailscale_ip_prefix: "100."
+    
+    # File permission settings - follow least privilege principle
+    # 0640 = user:rw-, group:r--, others:---
+    # 0750 = user:rwx, group:r-x, others:---
+    inventory_file_mode: '0640'  # Only readable by user and group
+    inventory_dir_mode: '0750'   # Only traversable by user and group
+  
+  # Load secure variables from an external file
+  # Security note: This file should be encrypted with ansible-vault 
+  vars_files:
+    - "{{ playbook_dir }}/vars/tailscale_secure.yml"
+
+  # Tasks to run before the main tasks
+  pre_tasks:
+    # We only need minimal facts for logging purposes
+    # Security note: Limiting fact gathering reduces exposure of system information
+    - name: Gather minimal facts for date/time
+      setup:
+        gather_subset:
+          - min  # Only collect essential facts
+
+    # Create an audit log entry for compliance and troubleshooting
+    # Security note: Maintaining audit logs is crucial for security monitoring
+    - name: Create audit log entry
+      blockinfile:
+        path: "{{ output_dir }}/audit_log_{{ ansible_date_time.date }}.log"
+        create: yes  # Create the file if it doesn't exist
+        mode: '0640'  # Restricted permissions for audit logs
+        block: |
+          Tailscale inventory update initiated at {{ ansible_date_time.iso8601 }}
+          User: {{ lookup('env', 'USER') }}
+          Host: {{ inventory_hostname }}
+      become: no  # Run as regular user, not root
+
+  # Main tasks for Tailscale status and inventory management
+  tasks:
+    # Ensure directories exist with proper permissions
+    # Security note: Properly securing these directories prevents unauthorized access
+    - name: Ensure output and inventory directories exist with correct permissions
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0750'  # rwx for owner, r-x for group, nothing for others
+        owner: "{{ real_user }}"  # Ensure correct ownership
+        group: "{{ real_user }}"  # Ensure correct group membership
+      loop:
+        - "{{ output_dir }}"
+        - "{{ inventory_dir }}"
+
+    # Check for existing device files to compare against current state
+    # Allows tracking of changes between runs
+    - name: Check for existing device files
+      stat:
+        path: "{{ output_dir }}/{{ item }}"
+      register: previous_files  # Stores the results for later use
+      loop:
+        - active_devices.json   # Devices that are currently online
+        - offline_devices.json  # Devices that are currently offline
+
+    # Load data about previously active devices if the file exists
+    # Security note: Always validate loaded data before using it
+    - name: Load previous active devices
+      set_fact:
+        previous_active_devices: "{{ lookup('file', output_dir + '/active_devices.json') | from_json | default([]) }}"
+      when: previous_files.results[0].stat.exists | default(false)
+
+    # Load data about previously offline devices if the file exists
+    # Security note: Always validate loaded data before using it
+    - name: Load previous offline devices
+      set_fact:
+        previous_offline_devices: "{{ lookup('file', output_dir + '/offline_devices.json') | from_json | default([]) }}"
+      when: previous_files.results[1].stat.exists | default(false)
+
+    # Initialize device lists if files don't exist to prevent errors
+    - name: Initialize previous devices if files don't exist
+      set_fact:
+        previous_active_devices: []
+        previous_offline_devices: []
+      when: not (previous_files.results[0].stat.exists | default(false))
+
+    # Get Tailscale status with AWK filtering for better performance
+    # Security note: Shell commands can be risky - validate inputs and outputs
+    - name: Get Tailscale status with awk filtering and pre-formatting
+      shell: |-
+        set -o pipefail
+        tailscale status | awk '
+        BEGIN { 
+          print "[";
+          split("", ip_seen);
+          split("", ip_index);
+          count = 0;
+        }
+        /^{{ tailscale_ip_prefix | regex_escape }}/ {
+          ip = $1;
+          hostname = $2;
+          machine_type = $4;
+          state = "";
+          for(i=5; i<=NF; i++) state = (state ? state " " : "") $i;
+          is_exit_node = (tolower(state) ~ /exit node/) ? "true" : "false";
+          
+          if (ip in ip_seen) {
+            devices[ip_index[ip]] = sprintf("  {\"ip\": \"%s\", \"hostname\": \"%s\", \"machine_type\": \"%s\", \"state\": \"%s\", \"exit_node\": %s}", ip, hostname, machine_type, state, is_exit_node);
+          } else {
+            ip_seen[ip] = 1;
+            ip_index[ip] = count;
+            devices[count] = sprintf("  {\"ip\": \"%s\", \"hostname\": \"%s\", \"machine_type\": \"%s\", \"state\": \"%s\", \"exit_node\": %s}", ip, hostname, machine_type, state, is_exit_node);
+            count++;
+          }
+        }
+        END {
+          for (i = 0; i < count; i++) {
+            print devices[i] (i < count-1 ? "," : "");
+          }
+          print "]";
+        }
+        '
+      args:
+        executable: /bin/bash
+      register: tailscale_json
+      changed_when: false
+      failed_when: tailscale_json.rc != 0 or (tailscale_json.stdout is not defined or tailscale_json.stdout == "")
+
+    # Parse the JSON output into a variable, if successful
+    # Security note: Always validate JSON input before parsing
+    - name: Parse device data
+      set_fact:
+        all_devices: "{{ tailscale_json.stdout | from_json | default([]) }}"
+      when: tailscale_json.stdout is defined and tailscale_json.stdout != ""
+
+    # Validate that the parsed data is a list - fail if not
+    # Security note: Input validation prevents downstream errors and potential exploits
+    - name: Validate parsed device data
+      fail:
+        msg: "Parsed Tailscale device data is not a list!"
+      when: all_devices is not iterable
+
+    # Handle the case where no devices were found
+    - name: Handle no devices case
+      set_fact:
+        all_devices: []
+      when: tailscale_json.stdout is not defined or tailscale_json.stdout == ""
+
+    # Categorize devices by their status
+    # This enables better organization in inventory and reports
+    - name: Separate devices by type
+      set_fact:
+        # Active devices are those not marked as offline
+        active_devices: "{{ all_devices | rejectattr('state', 'search', 'offline') | list }}"
+        # Offline devices are explicitly marked as such
+        offline_devices: "{{ all_devices | selectattr('state', 'search', 'offline') | list }}"
+        # Exit nodes are special devices used for routing traffic
+        exit_node_devices: "{{ all_devices | selectattr('exit_node', 'equalto', true) | list }}"
+
+    # Identify changes in device state since the last run
+    # This is valuable for monitoring and alerting
+    - name: Identify state changes
+      set_fact:
+        # Devices that were offline but are now active
+        newly_active_devices: "{{ active_devices | selectattr('ip', 'in', previous_offline_devices | map(attribute='ip')) | list }}"
+        # Devices that were active but are now offline
+        newly_offline_devices: "{{ offline_devices | selectattr('ip', 'in', previous_active_devices | map(attribute='ip')) | list }}"
+        # Entirely new devices that weren't seen before
+        new_devices: "{{ all_devices | rejectattr('ip', 'in', (previous_active_devices + previous_offline_devices) | map(attribute='ip')) | list }}"
+        # Devices that have disappeared from the network
+        removed_devices: "{{ (previous_active_devices + previous_offline_devices) | rejectattr('ip', 'in', all_devices | map(attribute='ip')) | list }}"
+
+    # Write the device information to JSON files
+    # Security note: Ensure proper file permissions to protect network data
+    - name: Write device files
+      copy:
+        dest: "{{ output_dir }}/{{ item.filename }}"
+        content: "{{ item.content | to_nice_json }}"  # Format as readable JSON
+        mode: '0644'  # User:rw-, Group:r--, Others:r--
+      loop:
+        - { filename: "active_devices.json", content: "{{ active_devices }}" }
+        - { filename: "offline_devices.json", content: "{{ offline_devices }}" }
+        - { filename: "exit_node_devices.json", content: "{{ exit_node_devices }}" }
+        - { filename: "state_changes.json", content: {"newly_active": "{{ newly_active_devices }}", "newly_offline": "{{ newly_offline_devices }}", "new_devices": "{{ new_devices }}", "removed_devices": "{{ removed_devices }}"} }
+      become: no  # Run as the regular user
+
+    # Ensure the inventory directory exists and has correct permissions
+    # Security note: Inventory files could contain sensitive network information
+    - name: Ensure inventory directory exists
+      file:
+        path: "{{ inventory_dir }}"
+        state: directory
+        mode: "{{ inventory_dir_mode }}"  # Using variable defined above (0750)
+
+    # Create a subdirectory specifically for Tailscale inventory
+    - name: Ensure tailscale inventory directory exists
+      file:
+        path: "{{ inventory_dir }}/tailscale"
+        state: directory
+        mode: '0755'  # User:rwx, Group:r-x, Others:r-x
+
+    # Ensure parent directories exist for the inventory file
+    - name: Ensure parent directories exist
+      file:
+        path: "{{ inventory_file | dirname }}"
+        state: directory
+        mode: '0755'  # User:rwx, Group:r-x, Others:r-x
+
+    # Check if an inventory file already exists
+    # This determines if we update or create a new one
+    - name: Check if inventory file exists
+      stat:
+        path: "{{ inventory_file }}"
+      register: inventory_file_stat
+
+    # Read the existing inventory file if it exists
+    # Security note: Always validate loaded data before using it
+    - name: Read existing inventory file if it exists
+      slurp:
+        src: "{{ inventory_file }}"  # slurp reads a file and base64 encodes it
+      register: existing_inventory
+      when: inventory_file_stat.stat.exists
+
+    # Parse the existing inventory YAML file if it exists
+    # Security note: YAML parsing can have security implications, validate carefully
+    - name: Parse existing inventory
+      set_fact:
+        current_inventory: >-
+          {{
+            (existing_inventory.content | b64decode | from_yaml)
+            if (existing_inventory is defined and existing_inventory.content is defined and (existing_inventory.content | b64decode | trim) != "")
+            else {}
+          }}
+      when: inventory_file_stat.stat.exists
+
+    # Initialize an empty inventory if the file doesn't exist or couldn't be parsed
+    - name: Initialize empty inventory if needed
+      set_fact:
+        current_inventory: {}
+      when: current_inventory is not mapping
+
+    # Prepare dictionaries mapping hostnames to host details
+    # This will be used to update the inventory structure
+    - name: Prepare host dictionaries for inventory
+      set_fact:
+        active_hosts_dict: "{{ (active_hosts_dict | default({})) | combine({item.hostname: item}) if (item.state is not search('offline')) else (active_hosts_dict | default({})) }}"
+        offline_hosts_dict: "{{ (offline_hosts_dict | default({})) | combine({item.hostname: item}) if (item.state is search('offline')) else (offline_hosts_dict | default({})) }}"
+        exit_node_hosts_dict: "{{ (exit_node_hosts_dict | default({})) | combine({item.hostname: item}) if (item.exit_node | bool) else (exit_node_hosts_dict | default({})) }}"
+      loop: "{{ all_devices }}"
+
+    # Update the inventory structure with Tailscale data
+    # This creates a hierarchical inventory with groups and subgroups
+    - name: Update inventory with Tailscale data
+      set_fact:
+        updated_inventory: >-
+          {{ 
+            current_inventory | combine(
+              {
+                'all': {
+                  'children': {
+                    'tailscale': {
+                      'children': {
+                        'active_devices': { 'hosts': active_hosts_dict | default({}) },
+                        'offline_devices': { 'hosts': offline_hosts_dict | default({}) },
+                        'exit_nodes': { 'hosts': exit_node_hosts_dict | default({}) }
+                      }
+                    }
+                  }
+                }
+              },
+              recursive=True
+            )
+          }}
+
+    # Process hosts to add ansible_host variable
+    # This is required for Ansible to know how to connect to hosts
+    # It uses a custom filter plugin defined in plugins/filter/tailscale_filters.py
+    - name: Process hosts to add ansible_host variable
+      set_fact:
+        processed_inventory: "{{ updated_inventory | modify_tailscale_hosts }}"
+
+    # Acquire a lock before writing to prevent conflicts from concurrent runs
+    # Security note: File locking prevents race conditions but doesn't prevent all concurrency issues
+    - name: Acquire lock for inventory write
+      shell: |
+        exec 9>/tmp/tailscale_inventory.lock  # Open file descriptor 9 for the lock file
+        flock -x 9                            # Acquire an exclusive lock
+        echo $$ > /tmp/tailscale_inventory.lock.pid  # Write PID to lock file
+      args:
+        executable: /bin/bash
+      # Security note: Lock files in /tmp can be vulnerable to symlink attacks
+
+    # Write the updated inventory file
+    # Security note: Ensure proper permissions to protect network data
+    - name: Write updated inventory file
+      copy:
+        content: "{{ processed_inventory | to_nice_yaml }}"  # Format as readable YAML
+        dest: "{{ inventory_file }}"
+        mode: "{{ inventory_file_mode }}"  # Using variable defined above (0640)
+
+    # Release the lock after writing is complete
+    - name: Release lock for inventory write
+      file:
+        path: /tmp/tailscale_inventory.lock
+        state: absent  # Remove the lock file
+
+    # Generate an additional inventory file specifically for active devices
+    # This uses a Jinja2 template for more complex formatting
+    - name: Generate inventory file for active devices
+      template:
+        src: templates/tailscale_inventory.j2  # Template must exist at this path
+        dest: "{{ inventory_dir }}/tailscale/hosts.yml"
+        mode: '0644'  # User:rw-, Group:r--, Others:r--
+      vars:
+        active_hosts: "{{ active_devices }}"
+        offline_hosts: "{{ offline_devices }}"
+        exit_node_hosts: "{{ exit_node_devices }}"
+
+    # Display information about state changes for monitoring
+    # Only shows output if changes were detected
+    - name: Display state changes
+      debug:
+        msg:
+          - "New devices: {{ new_devices | map(attribute='hostname') | list }}"
+          - "Removed devices: {{ removed_devices | map(attribute='hostname') | list }}"
+          - "Newly active: {{ newly_active_devices | map(attribute='hostname') | list }}"
+          - "Newly offline: {{ newly_offline_devices | map(attribute='hostname') | list }}"
+      when: new_devices or removed_devices or newly_active_devices or newly_offline_devices
+      # Security note: You should consider implementing alerting for unexpected device changes
+
+    # Show a summary of the current state
+    # This is helpful for quick assessment and logging
+    - name: Show summary
+      debug:
+        msg:
+          - "Active devices: {{ active_devices | length }}"
+          - "Offline devices: {{ offline_devices | length }}"
+          - "Exit node devices: {{ exit_node_devices | length }}"
+          - "Device files written to {{ output_dir }}/"
+          - "Inventory updated at {{ inventory_file }}"

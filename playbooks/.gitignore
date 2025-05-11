@@ -1,0 +1,6 @@
+*.log
+*.bak
+*.vault
+.vault_pass.txt
+.ansible/
+.tailscale/
