@@ -1,0 +1,7 @@
+# Example usage: ansible-playbook playbooks/gitlab/setup-server.yml -l repository.dc1 -e "repository_domain=repo.example.com"
+- name: setup repository server
+  hosts: repository_servers
+  user: root
+  roles:
+    - base-configuration
+    - repository-management

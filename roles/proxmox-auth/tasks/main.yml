@@ -1,0 +1,30 @@
+- name: update hosts
+  blockinfile:
+    dest: /etc/hosts
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - DC1"
+    block: |
+      {{ proxmox_auth_dc_ip | default('192.168.1.47') }} {{ proxmox_auth_dc_hostname | default('dc1.example.org') }}
+  tags: ["proxmox", "proxmox::auth"]
+
+- name: create pve domains
+  shell: echo > /etc/pve/domains.cfg
+  args:
+    creates: /etc/pve/domains.cfg
+
+  tags: ["proxmox", "proxmox::auth"]
+
+- name: update pve domains
+  blockinfile:
+    dest: /etc/pve/domains.cfg
+    unsafe_writes: yes
+    block: |
+      auth: company
+            comment Company Privileged Access Manager
+            domain {{ proxmox_auth_domain | default('auth.example.org') }}
+            server1 {{ proxmox_auth_dc_hostname | default('dc1.example.org') }}
+            default 1
+            port 636
+            secure 1
+            verify 1
+
+  tags: ["proxmox", "proxmox::auth"]

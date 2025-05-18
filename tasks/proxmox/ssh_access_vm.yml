@@ -1,0 +1,61 @@
+---
+# Setup SSH access to a QEMU VM via Proxmox API
+# This task file is included by setup_ssh_access.yml
+
+- name: Get VM info
+  shell: qm guest cmd {{ vm_id }} network-get-interfaces
+  register: vm_interfaces
+  failed_when: false
+  changed_when: false
+
+- name: Parse VM IP information
+  set_fact:
+    vm_ips: "{{ (vm_interfaces.stdout | from_json | default([])) | 
+              selectattr('ip-addresses', 'defined') | 
+              map(attribute='ip-addresses') | 
+              flatten | 
+              selectattr('ip-address', 'defined') | 
+              map(attribute='ip-address') | 
+              select('match', '^(?!127\.|::1|fe80:)') | 
+              list }}"
+  when: vm_interfaces is success and vm_interfaces.stdout | length > 0
+  
+- name: Display found IP addresses
+  debug:
+    msg: "Found IP addresses for VM {{ vm_id }}: {{ vm_ips | default([]) }}"
+  when: vm_ips is defined and vm_ips | length > 0
+
+- name: Try to inject SSH key using qemu-guest-agent
+  shell: >
+    qm guest exec {{ vm_id }} -- bash -c 
+    "mkdir -p /root/.ssh && 
+     echo '{{ ssh_public_key }}' >> /root/.ssh/authorized_keys &&
+     chmod 700 /root/.ssh &&
+     chmod 600 /root/.ssh/authorized_keys"
+  register: inject_root
+  failed_when: false
+  changed_when: inject_root.rc == 0
+
+- name: Try to inject SSH key to admin user using qemu-guest-agent
+  shell: >
+    qm guest exec {{ vm_id }} -- bash -c
+    "mkdir -p /home/admin/.ssh &&
+     echo '{{ ssh_public_key }}' >> /home/admin/.ssh/authorized_keys &&
+     chmod 700 /home/admin/.ssh &&
+     chmod 600 /home/admin/.ssh/authorized_keys &&
+     chown -R admin:admin /home/admin/.ssh"
+  register: inject_admin
+  failed_when: false
+  changed_when: inject_admin.rc == 0
+
+- name: Try SSH key injection via IP (fallback)
+  shell: >
+    sshpass -p {{ default_vm_password | default('changeme') }} 
+    ssh-copy-id -o StrictHostKeyChecking=no -i ~/.ssh/proxmox_ansible.pub admin@{{ item }}
+  loop: "{{ vm_ips | default([]) }}"
+  when: 
+    - vm_ips is defined and vm_ips | length > 0
+    - inject_root is failed and inject_admin is failed
+  register: ssh_copy_result
+  failed_when: false
+  changed_when: ssh_copy_result.rc == 0

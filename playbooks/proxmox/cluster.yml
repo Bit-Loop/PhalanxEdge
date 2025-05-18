@@ -1,0 +1,176 @@
+---
+# PROXMOX CLUSTER MANAGEMENT
+# This playbook manages Proxmox cluster formation, node joining, and quorum management
+
+- name: Proxmox Cluster Management
+  hosts: proxmox
+  gather_facts: yes
+  become: yes
+  vars_files:
+    - "{{ playbook_dir }}/../vars/proxmox_secrets.yml"
+
+  pre_tasks:
+    - name: Create audit log
+      blockinfile:
+        path: "{{ real_home }}/.ansible/logs/proxmox_audit_{{ ansible_date_time.date }}.log"
+        create: yes
+        mode: '0640'
+        block: |
+          Proxmox cluster management initiated at {{ ansible_date_time.iso8601 }}
+          User: {{ lookup('env', 'USER') }}
+          Host: {{ inventory_hostname }}
+          Operation: Cluster management
+      delegate_to: localhost
+      become: no
+
+  tasks:
+    # BLOCK 1: ENVIRONMENT SETUP
+    - name: Setup environment
+      block:
+        - name: Ensure required directories exist
+          file:
+            path: "{{ item }}"
+            state: directory
+            mode: '0750'
+          loop:
+            - "/etc/pve/nodes"
+            - "/etc/pve/priv"
+          
+        - name: Install required packages
+          apt:
+            name:
+              - proxmox-ve
+              - qemu-kvm
+              - postfix
+              - open-iscsi
+              - zfsutils-linux
+            state: present
+            update_cache: yes
+          when: ansible_os_family == "Debian"
+      tags: [setup]
+
+    # BLOCK 2: CLUSTER INITIALIZATION
+    - name: Manage cluster setup
+      block:
+        # Identify the cluster master
+        - name: Set cluster master
+          set_fact:
+            cluster_master: "{{ groups['proxmox_clusters']['cluster1'] | 
+                           selectattr('node_role', 'equalto', 'master') | 
+                           map(attribute='inventory_hostname') | first }}"
+          run_once: true
+        
+        # Get cluster status
+        - name: Check current cluster status
+          shell: pvecm status
+          register: cluster_status
+          changed_when: false
+          failed_when: false
+        
+        # Create cluster on master
+        - name: Initialize cluster on master node
+          shell: pvecm create {{ hostvars[cluster_master]['proxmox_cluster_name'] | default('pve-cluster') }}
+          when: 
+            - inventory_hostname == cluster_master
+            - "'no cluster' in cluster_status.stdout"
+          register: cluster_created
+        
+        # Wait for cluster to stabilize
+        - name: Wait for cluster to stabilize
+          pause:
+            seconds: 30
+          when: cluster_created is changed
+        
+        # Get cluster fingerprint from master
+        - name: Get cluster fingerprint from master
+          shell: pvecm list | grep -i {{ hostvars[cluster_master]['ansible_host'] }} | awk '{print $2}'
+          register: master_fingerprint
+          changed_when: false
+          delegate_to: "{{ cluster_master }}"
+          when: 
+            - inventory_hostname != cluster_master
+            - "'no cluster' in cluster_status.stdout"
+        
+        # Join nodes to cluster
+        - name: Join node to cluster
+          shell: pvecm add {{ hostvars[cluster_master]['ansible_host'] }} -fingerprint {{ master_fingerprint.stdout }}
+          when: 
+            - inventory_hostname != cluster_master
+            - "'no cluster' in cluster_status.stdout"
+            - master_fingerprint.stdout is defined and master_fingerprint.stdout != ""
+          register: node_joined
+        
+        # Wait for node to join cluster
+        - name: Wait for node to join cluster
+          pause:
+            seconds: 30
+          when: node_joined is changed
+      tags: [cluster]
+    
+    # BLOCK 3: QUORUM CONFIGURATION
+    - name: Configure quorum
+      block:
+        - name: Get cluster node count
+          set_fact:
+            cluster_node_count: "{{ groups['proxmox_clusters']['cluster1'] | length }}"
+          run_once: true
+        
+        - name: Calculate appropriate quorum
+          set_fact:
+            expected_quorum: "{{ (cluster_node_count // 2) + 1 }}"
+          run_once: true
+        
+        - name: Set quorum policy
+          shell: |
+            pvecm expected {{ expected_quorum }}
+          when: inventory_hostname == cluster_master
+          changed_when: true
+      when: inventory_hostname in groups['proxmox_clusters']['cluster1']
+      tags: [quorum]
+    
+    # BLOCK 4: HA CONFIGURATION
+    - name: Configure High Availability
+      block:
+        - name: Check HA status
+          shell: ha-manager status
+          register: ha_status
+          changed_when: false
+          failed_when: false
+          
+        - name: Enable HA services
+          shell: |
+            systemctl enable pve-ha-lrm
+            systemctl enable pve-ha-crm
+            systemctl start pve-ha-lrm
+            systemctl start pve-ha-crm
+          when: ha_status.rc != 0 or "not properly configured" in ha_status.stdout
+      when: 
+        - inventory_hostname in groups['proxmox_clusters']['cluster1']
+        - cluster_node_count|int >= 3
+      tags: [ha]
+    
+    # BLOCK 5: VERIFICATION
+    - name: Verify cluster setup
+      block:
+        - name: Get cluster status
+          shell: pvecm status
+          register: final_cluster_status
+          changed_when: false
+          
+        - name: Show cluster status
+          debug:
+            var: final_cluster_status.stdout_lines
+          
+        - name: Verify all expected nodes are in the cluster
+          shell: pvecm nodes
+          register: cluster_nodes
+          delegate_to: "{{ cluster_master }}"
+          run_once: true
+          changed_when: false
+          
+        - name: Show cluster nodes
+          debug:
+            var: cluster_nodes.stdout_lines
+          delegate_to: "{{ cluster_master }}"
+          run_once: true
+      tags: [verify]

@@ -1,0 +1,202 @@
+# playbooks/proxmox_phalanxedge_integration.yml
+---
+# PROXMOX PHALANXEDGE INTEGRATION
+# This playbook integrates Proxmox VMs and containers with PhalanxEdge tailscale inventory
+
+- name: Proxmox PhalanxEdge Integration
+  hosts: proxmox
+  gather_facts: yes
+  become: yes
+  vars_files:
+    - "{{ playbook_dir }}/../vars/proxmox_secrets.yml"
+    - "{{ playbook_dir }}/../vars/phalanxedge.yml"
+
+  pre_tasks:
+    - name: Create audit log
+      blockinfile:
+        path: "{{ real_home }}/.ansible/logs/proxmox_audit_{{ ansible_date_time.date }}.log"
+        create: yes
+        mode: '0640'
+        block: |
+          Proxmox PhalanxEdge integration initiated at {{ ansible_date_time.iso8601 }}
+          User: {{ lookup('env', 'USER') }}
+          Host: {{ inventory_hostname }}
+          Operation: PhalanxEdge integration
+      delegate_to: localhost
+      become: no
+
+  tasks:
+    # BLOCK 1: PROXMOX INVENTORY DISCOVERY
+    - name: Discover Proxmox resources
+      block:
+        - name: Get Proxmox VMs
+          community.general.proxmox_vm_info:
+            api_host: "{{ proxmox_api_host }}"
+            api_user: "{{ proxmox_api_user }}"
+            api_password: "{{ proxmox_api_password }}"
+            api_token_id: "{{ proxmox_api_token_id | default(omit) }}"
+            api_token_secret: "{{ proxmox_api_token_secret | default(omit) }}"
+            node: "{{ inventory_hostname }}"
+            verify_ssl: "{{ proxmox_verify_ssl | default(false) }}"
+          register: proxmox_vms
+          delegate_to: localhost
+        
+        - name: Get Proxmox containers
+          shell: |
+            pct list | grep -v VMID | awk '{print $1 " " $2 " " $3}'
+          register: container_info
+          changed_when: false
+          
+        - name: Parse container information
+          set_fact:
+            parsed_containers: "{{ container_info.stdout_lines | map('split', ' ') | list }}"
+      tags: [discovery]
+
+    # BLOCK 2: GET VM/CONTAINER IP ADDRESSES
+    - name: Get IP addresses
+      block:
+        - name: Get VM IPs
+          community.general.proxmox_vm_info:
+            api_host: "{{ proxmox_api_host }}"
+            api_user: "{{ proxmox_api_user }}"
+            api_password: "{{ proxmox_api_password }}"
+            api_token_id: "{{ proxmox_api_token_id | default(omit) }}"
+            api_token_secret: "{{ proxmox_api_token_secret | default(omit) }}"
+            node: "{{ inventory_hostname }}"
+            vmid: "{{ item.vmid }}"
+            verify_ssl: "{{ proxmox_verify_ssl | default(false) }}"
+          register: vm_ip_info
+          delegate_to: localhost
+          loop: "{{ proxmox_vms.proxmox_vms }}"
+          when: proxmox_vms.proxmox_vms is defined
+          loop_control:
+            label: "{{ item.name }}"
+            
+        - name: Get container IP addresses
+          shell: |
+            pct config {{ item[0] }} | grep -oP 'ip=\K[^,\/]+'
+          register: container_ips
+          changed_when: false
+          loop: "{{ parsed_containers }}"
+          ignore_errors: yes
+          loop_control:
+            label: "{{ item[1] }}"
+      tags: [ipaddress]
+
+    # BLOCK 3: GENERATE UNIFIED INVENTORY
+    - name: Generate unified inventory
+      block:
+        - name: Create combined data structure
+          set_fact:
+            combined_resources: "{{ {
+              'vms': proxmox_vms.proxmox_vms | default([]),
+              'containers': parsed_containers | default([])
+            } }}"
+            
+        - name: Generate unified inventory
+          template:
+            src: "{{ playbook_dir }}/../templates/proxmox/unified_inventory.j2"
+            dest: "{{ real_home }}/.ansible/inventory/proxmox_unified.yml"
+            mode: '0644'
+          delegate_to: localhost
+          vars:
+            vms: "{{ proxmox_vms.proxmox_vms | default([]) }}"
+            containers: "{{ parsed_containers | default([]) }}"
+            vm_ips: "{{ vm_ip_info.results | default([]) }}"
+            container_ips: "{{ container_ips.results | default([]) }}"
+            inventory_date: "{{ ansible_date_time.iso8601 }}"
+          run_once: true
+      tags: [inventory]
+
+    # BLOCK 4: TAILSCALE INTEGRATION
+    - name: Taiscale integration
+      block:
+        - name: Check if Tailscale is installed on VMs
+          shell: |
+            ping -c 1 -W 2 {{ item.ip | default(None) }} > /dev/null 2>&1
+            if [ $? -eq 0 ]; then
+              ssh -o StrictHostKeyChecking=no -o BatchMode=yes -o ConnectTimeout=3 {{ item.ip }} "command -v tailscale || echo 'not-installed'"
+            else
+              echo "not-reachable"
+            fi
+          register: tailscale_checks
+          changed_when: false
+          loop: "{{ proxmox_vms.proxmox_vms | default([]) }}"
+          when: item.status == 'running' and item.ip is defined
+          ignore_errors: yes
+          loop_control:
+            label: "{{ item.name }}"
+          
+        - name: Install Tailscale on VMs without it
+          shell: |
+            ssh -o StrictHostKeyChecking=no -o BatchMode=yes -o ConnectTimeout=3 {{ item.item.ip }} "curl -fsSL https://tailscale.com/install.sh | sh"
+          register: tailscale_installs
+          loop: "{{ tailscale_checks.results | default([]) }}"
+          when: 
+            - item.stdout is defined
+            - item.stdout == 'not-installed' 
+            - "'not-reachable' not in item.stdout"
+          changed_when: tailscale_installs.rc == 0
+          ignore_errors: yes
+          loop_control:
+            label: "{{ item.item.name }}"
+          
+        - name: Connect VMs to Tailscale network
+          shell: |
+            ssh -o StrictHostKeyChecking=no -o BatchMode=yes -o ConnectTimeout=3 {{ item.item.ip }} "tailscale up --authkey {{ phalanxedge_tailscale_authkey }}"
+          register: tailscale_connections
+          loop: "{{ tailscale_installs.results | default([]) }}"
+          when: 
+            - item.changed is defined
+            - item.changed
+          changed_when: tailscale_connections.rc == 0
+          ignore_errors: yes
+          loop_control:
+            label: "{{ item.item.item.name }}"
+      when: 
+        - phalanxedge_tailscale_integration | default(false)
+        - phalanxedge_tailscale_authkey is defined
+      tags: [tailscale]
+
+    # BLOCK 5: UPDATE PHALANXEDGE INVENTORY
+    - name: Update PhalanxEdge inventory
+      block:
+        - name: Run Tailscale status update
+          shell: |
+            cd {{ real_home }}/.ansible/playbooks && ansible-playbook tailscale-status.yml
+          delegate_to: localhost
+          run_once: true
+          register: tailscale_status
+          changed_when: tailscale_status.rc == 0
+          
+        - name: Merge Proxmox and Tailscale inventories
+          shell: |
+            ansible-inventory -i {{ real_home }}/.ansible/inventory/tailscale.yml -i {{ real_home }}/.ansible/inventory/proxmox_unified.yml --list --output {{ real_home }}/.ansible/inventory/merged_inventory.yml
+          delegate_to: localhost
+          run_once: true
+          register: merge_status
+          changed_when: merge_status.rc == 0
+      tags: [update]
+      
+    # BLOCK 6: REPORTING
+    - name: Generate integration report
+      block:
+        - name: Create report directory
+          file:
+            path: "{{ real_home }}/.ansible/reports"
+            state: directory
+            mode: '0750'
+          delegate_to: localhost
+          
+        - name: Generate HTML report
+          template:
+            src: "{{ playbook_dir }}/../templates/proxmox/phalanxedge_report.j2"
+            dest: "{{ real_home }}/.ansible/reports/proxmox_phalanxedge_{{ ansible_date_time.date }}.html"
+            mode: '0644'
+          delegate_to: localhost
+          vars:
+            integration_date: "{{ ansible_date_time.iso8601 }}"
+            proxmox_resources: "{{ combined_resources }}"
+            tailscale_status: "{{ tailscale_status.stdout | default('No data') }}"
+          run_once: true
+      tags: [report]

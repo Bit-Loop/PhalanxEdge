@@ -1,0 +1,66 @@
+# Proxmox Node Status Report - {{ node_name }}
+# Generated on: {{ ansible_date_time.date }} at {{ ansible_date_time.time }}
+
+===============================================================
+NODE STATUS
+===============================================================
+Node Name:              {{ node_name }}
+Uptime:                 {{ node_uptime }}
+CPU Usage:              {{ node_cpu_used }}
+Memory Usage:           {{ node_memory_used }}
+Load Average:           {{ node_load[0] }} (1min), {{ node_load[1] }} (5min), {{ node_load[2] }} (15min)
+
+===============================================================
+STORAGE STATUS
+===============================================================
+{% for storage in storage_info %}
+Storage: {{ storage.name }} ({{ storage.type }})
+  Total:       {{ (storage.total / (1024*1024*1024)) | round(2) }} GB
+  Used:        {{ (storage.used / (1024*1024*1024)) | round(2) }} GB ({{ storage.used_percent }}%)
+  Available:   {{ (storage.avail / (1024*1024*1024)) | round(2) }} GB
+{% if not loop.last %}
+-------------------------------------
+{% endif %}
+{% endfor %}
+
+===============================================================
+VIRTUAL MACHINES
+===============================================================
+{% for vm in vm_info %}
+VMID: {{ vm.vmid }} - {{ vm.name }}
+  Status:      {{ vm.status }}
+  CPU:         {{ vm.cpu }} cores
+  Memory:      {{ (vm.maxmem / (1024*1024*1024)) | round(2) }} GB
+  Disk:        {{ (vm.maxdisk / (1024*1024*1024)) | round(2) }} GB
+{% if not loop.last %}
+-------------------------------------
+{% endif %}
+{% endfor %}
+
+===============================================================
+CONTAINERS
+===============================================================
+{% for ct in lxc_info %}
+CTID: {{ ct.vmid }} - {{ ct.name }}
+  Status:      {{ ct.status }}
+  CPU:         {{ ct.cpu }} cores
+  Memory:      {{ (ct.maxmem / (1024*1024*1024)) | round(2) }} GB
+  Disk:        {{ (ct.maxdisk / (1024*1024*1024)) | round(2) }} GB
+{% if not loop.last %}
+-------------------------------------
+{% endif %}
+{% endfor %}
+
+{% if cluster_info|length > 0 %}
+===============================================================
+CLUSTER STATUS
+===============================================================
+{% for node in cluster_info %}
+{% if node.type == 'node' %}
+Node: {{ node.name }}
+  Status:      {{ node.online | ternary('Online', 'Offline') }}
+  Quorum:      {{ node.quorum | ternary('Yes', 'No') }}
+  Role:        {{ node.nodeid }}
+{% endif %}
+{% endfor %}
+{% endif %}

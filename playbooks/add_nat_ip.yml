@@ -1,0 +1,15 @@
+---
+- name: Process each NAT IP for the host
+  set_fact:
+    scan_targets: "{{ scan_targets | combine({
+      (outer_item.key ~ '-nat-' ~ idx): {
+        'hostname': outer_item.key,
+        'ip': nat_ip,
+        'type': 'nat',
+        'tailscale_ip': outer_item.value.tailscale_ip
+      }
+    }) }}"
+  loop: "{{ outer_item.value.nat_ips | default([]) }}"
+  loop_control:
+    loop_var: nat_ip
+    index_var: idx

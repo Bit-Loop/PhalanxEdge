@@ -1,0 +1,56 @@
+# unicorn pam ssh -c hsv -C -- ansible-playbook playbooks/gitlab/server.yml -l pm1.hsv,new_hosts -e storage_override=local-lvm
+- name: deploy repository management server
+  hosts: virtualization_hosts
+  user: root
+  vars:
+    server_ip: "{{ network.services.repository_manager }}"
+
+  tasks:
+    - include_role:
+        name: environment-config
+
+    - name: provision virtual machine
+      include_role:
+        name: virtualization-manager
+      vars:
+        storage_location: "{{ storage_target|default('main-storage') }}"
+        virtual_machine:
+          name: repository
+          id: 6000
+          template: /var/lib/virtualization/templates/linux-base.qcow2
+          cpu:
+            cores: 4
+            sockets: 1
+          ram: 8192
+          storage: 64G
+          network:
+            ipv4: "{{ server_ip }}/{{ network.services.netmask }}"
+            gateway: "{{ network.services.gateway }}"
+            dns: "{{ network.dns_servers }}"
+            vlan_id: "{{ network.services.vlan_tag }}"
+            domain: "{{ network.services.search_domain }}"
+          access:
+            - authorized_keys: "ssh-ed25519 AAAAC3NzaC1jZDI1NTE5XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+
+    - name: clean local ssh known hosts entry
+      known_hosts:
+        name: "{{ server_ip }}"
+        state: absent
+      delegate_to: localhost
+
+    - name: register system in temporary inventory
+      add_host:
+        hostname: "repository.{{ organization_id }}"
+        groups:
+          - new_systems
+          - repository_servers
+        inventory_dir: "{{ inventory_dir }}"
+        ansible_host: "{{ server_ip }}"
+        organization_id: "{{ organization_id }}"
+      delegate_to: localhost
+
+- name: initialize system configuration
+  import_playbook: ../bootstrap/configure-from-template.yml
+
+- name: configure repository service
+  import_playbook: repository-setup.yml

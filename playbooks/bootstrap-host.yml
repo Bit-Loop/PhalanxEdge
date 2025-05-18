@@ -54,6 +54,11 @@
           - fail2ban
         state: present
 
+    - name: Install proxmoxer Python package
+      pip:
+        name: proxmoxer
+        executable: pip3
+
     - name: Ensure directories exist with correct permissions
       file:
         path: "{{ item }}"

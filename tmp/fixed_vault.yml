@@ -1,0 +1,11 @@
+# Proxmox API credentials
+# These values should be encrypted with ansible-vault
+
+# Default Proxmox API password
+vault_proxmox_api_password: "" #changing in the future. Testing/wip
+
+# Host-specific passwords (for pve-test)
+vault_pve_test_password: "" #changing in the future. Testing/wip 
+vault_pve_test_api_password: "" #changing in the future. Testing/wip
+
+# Additional credentials as needed

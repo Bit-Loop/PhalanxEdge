@@ -1,0 +1,108 @@
+---
+# PROXMOX VIRTUALIZATION MANAGEMENT
+# Master playbook that imports all Proxmox management components
+
+- name: Check prerequisite variables
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Verify required variables
+      fail:
+        msg: "Required variable '{{ item }}' is not defined"
+      when: lookup('env', item) == ""
+      loop:
+        - ANSIBLE_CONFIG
+      ignore_errors: yes
+      tags: [always]
+
+- name: Import Proxmox infrastructure setup
+  import_playbook: proxmox/infrastructure.yml
+  tags: [infrastructure]
+
+- name: Import Proxmox cluster management
+  import_playbook: proxmox/cluster.yml
+  tags: [cluster]
+
+- name: Import Proxmox platform setup
+  import_playbook: proxmox/platform.yml
+  tags: [platform]
+
+- name: Import Proxmox VM management
+  import_playbook: proxmox/vm.yml
+  tags: [vm]
+
+- name: Import Proxmox container management
+  import_playbook: proxmox/container.yml
+  tags: [container]
+
+- name: Import Proxmox system integration
+  import_playbook: proxmox/phalanxedge_integration.yml
+  tags: [integration]
+
+- hosts:
+    - virtualization_nodes
+  user: root
+  vars:
+    cert_authority_id: 2
+    dns_suffix: "{% if is_primary %}primary.domain{% else %}some.domain{% endif %}"
+  roles:
+    - role: common
+    - role: virtualization-checks
+    - role: domain-ca-trust
+      when: not is_primary
+    - role: repo-proxmox
+    - role: sshd
+    - role: users
+      when: not is_primary
+    - role: prometheus-node-exporter
+    - role: virtualization-images
+    - role: virtualization-auth
+    - role: rsyslog
+      when: not is_primary
+      vars:
+        rsyslog_send_remote: yes
+        rsyslog_remote: "{{ site.hosts.admin }}"
+
+    - role: cert
+      vars:
+        ca_id: "{{ cert_authority_id }}"
+        id: pve
+        cn: "{{ inventory_hostname }}.{{ dns_suffix }}"
+        sans:
+          - type: dns
+            name: "{{ inventory_hostname }}.{{ dns_suffix }}"
+
+          - type: ipv4
+            names: "{{ ansible_all_ipv4_addresses }}"
+
+        do_notify: [update Proxmox certificates]
+
+  post_tasks:
+    - name: restart pveproxy
+      systemd:
+        unit: pveproxy.service
+        state: restarted
+
+  handlers:
+    - name: update Proxmox certificates
+      shell: >
+        cp /etc/ssl/managed/pve/privkey.pem /etc/pve/local/pveproxy-ssl.key &&
+        cp /etc/ssl/managed/pve/cert.pem /etc/pve/local/pveproxy-ssl.pem
+
+- name: Proxmox Platform Setup
+  hosts: proxmox
+  user: root
+  vars_files:
+    - ../../vars/proxmox_secrets.yml
+  roles:
+    - role: proxmox-images
+      tags: [images]
+    
+  tasks:
+    - name: Configure templates
+      include_tasks: "../../tasks/proxmox/templates/{{ item }}.yml"
+      with_items:
+        - linux
+        - windows
+      when: inventory_hostname == groups['storage_nodes'][0]
+      tags: [templates]

@@ -1,0 +1,328 @@
+---
+# PROXMOX VM MANAGEMENT
+# This playbook handles VM lifecycle management including creation,
+# cloning, updating, and deletion of VMs in Proxmox.
+
+- name: Proxmox VM Management
+  hosts: proxmox
+  gather_facts: yes
+  become: yes
+  vars_files:
+    - "{{ playbook_dir }}/../vars/proxmox_secrets.yml"
+    - "{{ playbook_dir }}/../vars/proxmox_vm_templates.yml"
+
+  pre_tasks:
+    - name: Create audit log
+      blockinfile:
+        path: "{{ real_home }}/.ansible/logs/proxmox_audit_{{ ansible_date_time.date }}.log"
+        create: yes
+        mode: '0640'
+        block: |
+          Proxmox VM management initiated at {{ ansible_date_time.iso8601 }}
+          User: {{ lookup('env', 'USER') }}
+          Host: {{ inventory_hostname }}
+          Operation: VM management
+      delegate_to: localhost
+      become: no
+
+  tasks:
+    # BLOCK 1: PREREQUISITES
+    - name: Verify prerequisites
+      block:
+        - name: Check Proxmox API access
+          uri:
+            url: "https://{{ proxmox_api_host }}:{{ proxmox_api_port | default('8006') }}/api2/json/version"
+            validate_certs: "{{ proxmox_verify_ssl | default(false) }}"
+            user: "{{ proxmox_api_user }}"
+            password: "{{ proxmox_api_password }}"
+            force_basic_auth: yes
+          register: api_check
+          delegate_to: localhost
+          failed_when: api_check.status != 200
+
+        - name: Install required Python modules
+          pip:
+            name:
+              - proxmoxer
+              - requests
+            state: present
+      tags: [always]
+
+    # BLOCK 2: TEMPLATE MANAGEMENT
+    - name: Manage VM templates
+      block:
+        - name: Get existing templates
+          community.general.proxmox_vm_info:
+            api_host: "{{ proxmox_api_host }}"
+            api_user: "{{ proxmox_api_user }}"
+            api_password: "{{ proxmox_api_password }}"
+            api_token_id: "{{ proxmox_api_token_id | default(omit) }}"
+            api_token_secret: "{{ proxmox_api_token_secret | default(omit) }}"
+            node: "{{ inventory_hostname }}"
+            verify_ssl: "{{ proxmox_verify_ssl | default(false) }}"
+          register: existing_vms
+          delegate_to: localhost
+          when: inventory_hostname in groups['storage_nodes']
+
+        - name: Download cloud images
+          get_url:
+            url: "{{ item.url }}"
+            dest: "/var/lib/vz/template/iso/{{ item.filename }}"
+            checksum: "{{ item.checksum | default(omit) }}"
+            mode: '0644'
+          loop: "{{ vm_templates | default([]) }}"
+          when: 
+            - inventory_hostname in groups['storage_nodes']
+            - item.type == 'cloud-init'
+          register: downloaded_images
+
+        - name: Create VM templates
+          community.general.proxmox_kvm:
+            api_host: "{{ proxmox_api_host }}"
+            api_user: "{{ proxmox_api_user }}"
+            api_password: "{{ proxmox_api_password }}"
+            api_token_id: "{{ proxmox_api_token_id | default(omit) }}"
+            api_token_secret: "{{ proxmox_api_token_secret | default(omit) }}"
+            node: "{{ inventory_hostname }}"
+            name: "{{ item.name }}"
+            vmid: "{{ item.id }}"
+            ostype: "{{ item.ostype | default('l26') }}"
+            storage: "{{ item.storage | default('local-lvm') }}"
+            memory: "{{ item.memory | default(2048) }}"
+            cores: "{{ item.cores | default(2) }}"
+            sockets: "{{ item.sockets | default(1) }}"
+            net: "{{ item.network | default({'net0': 'virtio,bridge=vmbr0'}) }}"
+            scsihw: "{{ item.scsihw | default('virtio-scsi-pci') }}"
+            bootdisk: "{{ item.bootdisk | default('scsi0') }}"
+            state: present
+          loop: "{{ vm_templates | default([]) }}"
+          when: 
+            - inventory_hostname in groups['storage_nodes']
+            - item.name not in (existing_vms.proxmox_vms | map(attribute='name') | list)
+          delegate_to: localhost
+          register: template_created
+
+        - name: Convert VMs to templates
+          shell: qm template {{ item.item.id }}
+          loop: "{{ template_created.results }}"
+          when: 
+            - inventory_hostname in groups['storage_nodes']
+            - item is not skipped
+            - item is changed
+      tags: [templates]
+
+    # BLOCK 3: VM CREATION
+    - name: Manage VMs
+      block:
+        - name: Get current VMs
+          community.general.proxmox_vm_info:
+            api_host: "{{ proxmox_api_host }}"
+            api_user: "{{ proxmox_api_user }}"
+            api_password: "{{ proxmox_api_password }}"
+            api_token_id: "{{ proxmox_api_token_id | default(omit) }}"
+            api_token_secret: "{{ proxmox_api_token_secret | default(omit) }}"
+            node: "{{ inventory_hostname }}"
+            verify_ssl: "{{ proxmox_verify_ssl | default(false) }}"
+          register: vm_list
+          delegate_to: localhost
+
+        - name: Create VMs from templates
+          community.general.proxmox_kvm:
+            api_host: "{{ proxmox_api_host }}"
+            api_user: "{{ proxmox_api_user }}"
+            api_password: "{{ proxmox_api_password }}"
+            api_token_id: "{{ proxmox_api_token_id | default(omit) }}"
+            api_token_secret: "{{ proxmox_api_token_secret | default(omit) }}"
+            node: "{{ inventory_hostname }}"
+            clone: "{{ item.template }}"
+            vmid: "{{ item.id }}"
+            name: "{{ item.name }}"
+            newid: "{{ item.id }}"
+            full: "{{ item.full_clone | default(true) }}"
+            storage: "{{ item.storage | default('local-lvm') }}"
+            format: "{{ item.format | default('qcow2') }}"
+            state: present
+          loop: "{{ vm_definitions | default([]) }}"
+          when: 
+            - item.state | default('present') == 'present'
+            - item.name not in (vm_list.proxmox_vms | map(attribute='name') | list)
+          delegate_to: localhost
+          register: vms_created
+
+        - name: Configure VMs
+          community.general.proxmox_kvm:
+            api_host: "{{ proxmox_api_host }}"
+            api_user: "{{ proxmox_api_user }}"
+            api_password: "{{ proxmox_api_password }}"
+            api_token_id: "{{ proxmox_api_token_id | default(omit) }}"
+            api_token_secret: "{{ proxmox_api_token_secret | default(omit) }}"
+            node: "{{ inventory_hostname }}"
+            vmid: "{{ item.id }}"
+            memory: "{{ item.memory | default(2048) }}"
+            cores: "{{ item.cores | default(2) }}"
+            sockets: "{{ item.sockets | default(1) }}"
+            cpu: "{{ item.cpu | default('host') }}"
+            scsihw: "{{ item.scsihw | default('virtio-scsi-pci') }}"
+            delete: "{{ item.delete | default(omit) }}"
+            oncreate: false
+            state: present
+          loop: "{{ vm_definitions | default([]) }}"
+          when: 
+            - item.state | default('present') == 'present'
+          delegate_to: localhost
+
+        - name: Configure cloud-init (if applicable)
+          community.general.proxmox_kvm:
+            api_host: "{{ proxmox_api_host }}"
+            api_user: "{{ proxmox_api_user }}"
+            api_password: "{{ proxmox_api_password }}"
+            api_token_id: "{{ proxmox_api_token_id | default(omit) }}"
+            api_token_secret: "{{ proxmox_api_token_secret | default(omit) }}"
+            node: "{{ inventory_hostname }}"
+            vmid: "{{ item.id }}"
+            cicustom: "{{ item.cicustom | default(omit) }}"
+            ciuser: "{{ item.ciuser | default(omit) }}"
+            cipassword: "{{ item.cipassword | default(omit) }}"
+            searchdomain: "{{ item.searchdomain | default(omit) }}"
+            nameserver: "{{ item.nameserver | default(omit) }}"
+            ipconfig: "{{ item.ipconfig | default(omit) }}"
+            sshkeys: "{{ item.sshkeys | default(omit) }}"
+            state: present
+          loop: "{{ vm_definitions | default([]) }}"
+          when: 
+            - item.state | default('present') == 'present'
+            - item.cloud_init | default(false)
+          delegate_to: localhost
+
+        - name: Start VMs that should be running
+          community.general.proxmox_kvm:
+            api_host: "{{ proxmox_api_host }}"
+            api_user: "{{ proxmox_api_user }}"
+            api_password: "{{ proxmox_api_password }}"
+            api_token_id: "{{ proxmox_api_token_id | default(omit) }}"
+            api_token_secret: "{{ proxmox_api_token_secret | default(omit) }}"
+            node: "{{ inventory_hostname }}"
+            vmid: "{{ item.id }}"
+            state: started
+          loop: "{{ vm_definitions | default([]) }}"
+          when: 
+            - item.state | default('started') == 'started'
+          delegate_to: localhost
+
+        - name: Stop VMs that should be stopped
+          community.general.proxmox_kvm:
+            api_host: "{{ proxmox_api_host }}"
+            api_user: "{{ proxmox_api_user }}"
+            api_password: "{{ proxmox_api_password }}"
+            api_token_id: "{{ proxmox_api_token_id | default(omit) }}"
+            api_token_secret: "{{ proxmox_api_token_secret | default(omit) }}"
+            node: "{{ inventory_hostname }}"
+            vmid: "{{ item.id }}"
+            state: stopped
+          loop: "{{ vm_definitions | default([]) }}"
+          when: 
+            - item.state | default('started') == 'stopped'
+          delegate_to: localhost
+
+        - name: Delete VMs that should be absent
+          community.general.proxmox_kvm:
+            api_host: "{{ proxmox_api_host }}"
+            api_user: "{{ proxmox_api_user }}"
+            api_password: "{{ proxmox_api_password }}"
+            api_token_id: "{{ proxmox_api_token_id | default(omit) }}"
+            api_token_secret: "{{ proxmox_api_token_secret | default(omit) }}"
+            node: "{{ inventory_hostname }}"
+            vmid: "{{ item.id }}"
+            state: absent
+          loop: "{{ vm_definitions | default([]) }}"
+          when: 
+            - item.state | default('present') == 'absent'
+          delegate_to: localhost
+      tags: [vm]
+
+    # BLOCK 4: VM BACKUP
+    - name: Manage VM backups
+      block:
+        - name: Create backup directory
+          file:
+            path: "{{ item.storage_path | default('/var/lib/vz/dump') }}"
+            state: directory
+            mode: '0755'
+          loop: "{{ backup_configurations | default([]) }}"
+          when: item.storage_type | default('local') == 'local'
+
+        - name: Schedule backups
+          cron:
+            name: "VM backup - {{ item.name }}"
+            hour: "{{ item.hour | default('1') }}"
+            minute: "{{ item.minute | default('0') }}"
+            user: root
+            job: >
+              vzdump {{ item.vmids | join(',') }} 
+              --compress {{ item.compression | default('zstd') }} 
+              --mode {{ item.mode | default('snapshot') }} 
+              --storage {{ item.storage | default('local') }} 
+              --maxfiles {{ item.retention | default('5') }}
+          loop: "{{ backup_configurations | default([]) }}"
+          when: item.state | default('present') == 'present'
+
+        - name: Remove backup schedules
+          cron:
+            name: "VM backup - {{ item.name }}"
+            state: absent
+          loop: "{{ backup_configurations | default([]) }}"
+          when: item.state | default('present') == 'absent'
+      tags: [backup]
+
+    # BLOCK 5: VM REPORTING
+    - name: VM reporting
+      block:
+        - name: Get detailed VM info
+          community.general.proxmox_vm_info:
+            api_host: "{{ proxmox_api_host }}"
+            api_user: "{{ proxmox_api_user }}"
+            api_password: "{{ proxmox_api_password }}"
+            api_token_id: "{{ proxmox_api_token_id | default(omit) }}"
+            api_token_secret: "{{ proxmox_api_token_secret | default(omit) }}"
+            node: "{{ inventory_hostname }}"
+            verify_ssl: "{{ proxmox_verify_ssl | default(false) }}"
+          register: vm_stats
+          delegate_to: localhost
+          
+        - name: Generate VM report
+          template:
+            src: "{{ playbook_dir }}/../templates/proxmox/vm_report.j2"
+            dest: "{{ real_home }}/.ansible/reports/proxmox_vms_{{ inventory_hostname }}_{{ ansible_date_time.date }}.html"
+            mode: '0644'
+          delegate_to: localhost
+          vars:
+            vms: "{{ vm_stats.proxmox_vms }}"
+            report_date: "{{ ansible_date_time.iso8601 }}"
+      tags: [report]
+
+    # BLOCK 6: INTEGRATION WITH PHALANXEDGE
+    - name: Integrate with PhalanxEdge
+      block:
+        - name: Collect VM network information
+          community.general.proxmox_vm_info:
+            api_host: "{{ proxmox_api_host }}"
+            api_user: "{{ proxmox_api_user }}"
+            api_password: "{{ proxmox_api_password }}"
+            api_token_id: "{{ proxmox_api_token_id | default(omit) }}"
+            api_token_secret: "{{ proxmox_api_token_secret | default(omit) }}"
+            node: "{{ inventory_hostname }}"
+            verify_ssl: "{{ proxmox_verify_ssl | default(false) }}"
+          register: vm_net_info
+          delegate_to: localhost
+          
+        - name: Generate Proxmox VM inventory
+          template:
+            src: "{{ playbook_dir }}/../templates/proxmox/vm_inventory.j2"
+            dest: "{{ real_home }}/.ansible/inventory/proxmox_vms.yml"
+            mode: '0644'
+          delegate_to: localhost
+          vars:
+            vms: "{{ vm_net_info.proxmox_vms }}"
+            inventory_date: "{{ ansible_date_time.iso8601 }}"
+          run_once: true
+      tags: [integration]

@@ -1,0 +1,23 @@
+plugin: community.general.proxmox
+url: https://192.168.1.47:8006
+user: root@pam
+token_id: ansible-automation
+token_secret: "{{ lookup('file', '~/.ansible/.proxmox_token_value') | trim }}"
+validate_certs: false
+group_prefix: proxmox_
+want_facts: true
+facts_prefix: proxmox_
+strict: false
+hostname: inventory_hostname
+compose:
+  ansible_host: proxmox_ip
+  not_monty: "{{ proxmox_node != 'monty' }}"
+keyed_groups:
+  - key: proxmox_node
+    prefix: node
+want_proxmox_nodes_ansible_host: true
+vm_status_filter:
+  - running
+  - stopped
+# Increase timeout for API calls
+timeout: 15

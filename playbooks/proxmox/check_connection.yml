@@ -1,0 +1,29 @@
+---
+# Simple playbook to check Proxmox host connections
+# Use this to verify your credentials are working correctly
+
+- name: Check Proxmox SSH and API connections
+  hosts: "{{ hosts_to_check | default('proxmox') }}"
+  gather_facts: yes
+  vars_files:
+    - "{{ playbook_dir }}/../vars/proxmox_secrets.yml"
+  
+  tasks:
+    - name: Display connection information
+      debug:
+        msg: "Connected to {{ inventory_hostname }} ({{ ansible_host }}) via SSH"
+      
+    - name: Check Proxmox API access
+      uri:
+        url: "https://{{ proxmox_api_host | default(ansible_host) }}:{{ proxmox_api_port | default('8006') }}/api2/json/version"
+        user: "{{ proxmox_api_user | default('root@pam') }}"
+        password: "{{ proxmox_api_password }}"
+        validate_certs: "{{ proxmox_verify_ssl | default(false) }}"
+        force_basic_auth: yes
+      register: api_result
+      delegate_to: localhost
+      
+    - name: Display API version information
+      debug:
+        msg: "Proxmox API access successful! Version: {{ api_result.json.data.version }}"
+      when: api_result.status == 200

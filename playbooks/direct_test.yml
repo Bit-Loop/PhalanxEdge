@@ -1,0 +1,21 @@
+---
+# Test connection with explicit variable loading
+- name: Test connection to Proxmox host
+  hosts: pve-test
+  gather_facts: no
+  vars:
+    ansible_user: root
+    ansible_password: ""  # Testing/WIP"  # Direct password for testing
+    ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
+  
+  tasks:
+    - name: Ping host
+      ping:
+      
+    - name: Get hostname
+      command: hostname
+      register: hostname_result
+      
+    - name: Show hostname
+      debug:
+        msg: "Connected to {{ hostname_result.stdout }}"

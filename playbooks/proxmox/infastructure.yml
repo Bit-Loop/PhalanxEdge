@@ -1,0 +1,36 @@
+# playbooks/proxmox_infrastructure.yml
+---
+- name: Proxmox Infrastructure Setup
+  hosts: proxmox
+  user: root
+  vars_files:
+    - vars/proxmox_secrets.yml
+  roles:
+    - role: common
+    - role: repo-proxmox
+    - role: sshd
+    - role: users
+    - role: prometheus-node-exporter
+    - role: proxmox-auth
+    - role: rsyslog
+    - role: cert
+      vars:
+        ca_id: "{{ pm_ca_id }}"
+        cn: "{{ inventory_hostname }}.{{ dns_suffix }}"
+        
+    - role: proxmox/cluster
+      tags: cluster
+      when: inventory_hostname in groups['cluster_production']
+    
+    - role: proxmox/storage
+      tags: storage
+      when: inventory_hostname in groups['storage_nodes']
+    
+    - role: proxmox/network
+      tags: network
+      
+  handlers:
+    - name: update Proxmox certificates
+      shell: >
+        cp /etc/ssl/managed/pve/privkey.pem /etc/pve/local/pveproxy-ssl.key &&
+        cp /etc/ssl/managed/pve/cert.pem /etc/pve/local/pveproxy-ssl.pem

@@ -1,0 +1,14 @@
+---
+- name: Quick connectivity check
+  hosts: pve-test
+  gather_facts: no
+  vars_files:
+    - "../vars/proxmox_secrets.yml"
+  tasks:
+    - name: Get Proxmox host information
+      command: hostname -f
+      register: hostname_result
+      
+    - name: Display hostname
+      debug:
+        msg: "Successfully connected to {{ hostname_result.stdout }}"

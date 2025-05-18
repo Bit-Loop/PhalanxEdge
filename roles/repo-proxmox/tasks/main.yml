@@ -1,0 +1,26 @@
+- name: add proxmox repository key
+  apt_key:
+    url: http://download.proxmox.com/debian/proxmox-ve-release-{{ proxmox_version }}.x.gpg
+
+  tags: [ "proxmox", "proxmox::repo" ]
+
+- name: remove enterprise repository
+  apt_repository:
+    state: absent
+    repo: deb https://enterprise.proxmox.com/debian/pve {{ debian_version }} pve-enterprise
+
+  tags: [ "proxmox", "proxmox::repo" ]
+
+- name: add pve-no-subscription repository
+  apt_repository:
+    filename: pve.list
+    repo: deb http://download.proxmox.com/debian/pve {{ debian_version }} pve-no-subscription
+
+  tags: [ "proxmox", "proxmox::repo" ]
+
+- name: add backports repository
+  apt_repository:
+    filename: backports.list
+    repo: deb http://deb.debian.org/debian/ {{ debian_version }}-backports main contrib non-free
+
+  tags: [ "proxmox", "proxmox::repo" ]

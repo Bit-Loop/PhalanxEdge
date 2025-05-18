@@ -1,0 +1,48 @@
+# playbooks/proxmox/platform.yml
+---
+- name: Infrastructure Platform Configuration
+  hosts: proxmox
+  user: root
+  vars_files:
+    - ../../vars/infrastructure_credentials.yml
+  roles:
+    - role: vm-templates
+      tags: [templates]
+      
+  tasks:
+    - name: Deploy standard templates
+      include_tasks: "../../tasks/infrastructure/templates/{{ item }}.yml"
+      with_items:
+        - standard_os
+        - enterprise_os
+        - linux_os
+        - windows_os
+      when: inventory_hostname == groups['storage_nodes'][0]
+      tags: [templates]
+
+- hosts:
+    - virtualization
+  user: root
+  vars:
+    cert_id: 2
+    domain_suffix: "{% if is_primary %}primary.domain{% else %}client.domain{% endif %}"
+  roles:
+    - role: base
+    - role: monitoring-agents
+    # ... existing code ...
+  
+  post_tasks:
+    - name: Apply advanced configurations
+      include_tasks: "infrastructure/{{ item }}.yml"
+      with_items:
+        - high_availability
+        - redundant_storage
+        - networking
+      when: enable_advanced_features | default(false)
+      tags: advanced
+    
+    # ... existing code ...
+    - name: refresh service proxy
+      systemd:
+        unit: service-proxy.service
+        state: restarted

@@ -1,0 +1,42 @@
+---
+# Tasks for checking storage status on Proxmox nodes
+
+- name: Get Proxmox storage information
+  shell: pvesm status
+  register: storage_status
+  changed_when: false
+  
+- name: Get ZFS pool status if available
+  shell: zpool status
+  register: zfs_status
+  changed_when: false
+  failed_when: false
+  
+- name: Get SMART information for physical disks
+  shell: |
+    for disk in $(ls -la /dev/disk/by-id/ | grep -v "wwn\|part\|"-" | grep "ata\|nvme" | awk '{print $9}'); do
+      echo "=== $disk ==="
+      smartctl -a /dev/disk/by-id/$disk | grep -E 'Device Model|Serial Number|User Capacity|SMART overall|Reallocated_Sector|Current_Pending_Sector|Offline_Uncorrectable|Power_On_Hours|Temperature'
+      echo ""
+    done
+  register: smart_info
+  changed_when: false
+  failed_when: false
+  
+- name: Check if any disks have SMART errors
+  shell: |
+    for disk in $(ls -la /dev/disk/by-id/ | grep -v "wwn\|part\|"-" | grep "ata\|nvme" | awk '{print $9}'); do
+      smartctl -a /dev/disk/by-id/$disk | grep -i "error"
+    done
+  register: smart_errors
+  changed_when: false
+  failed_when: false
+  
+- name: Set storage facts
+  set_fact:
+    storage_info:
+      storage_status: "{{ storage_status.stdout_lines }}"
+      zfs_status: "{{ zfs_status.stdout_lines | default([]) }}"
+      smart_info: "{{ smart_info.stdout_lines | default([]) }}"
+      smart_errors: "{{ smart_errors.stdout_lines | default([]) }}"
+      has_errors: "{{ smart_errors.stdout_lines | default([]) | length > 0 }}"

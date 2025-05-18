@@ -1,0 +1,52 @@
+---
+# This playbook sets up SSH access to VMs and containers via Proxmox API
+# It uses Proxmox's API to inject SSH keys into VMs and containers
+
+- name: Set up SSH access to Proxmox VMs and containers
+  hosts: all_nodes
+  gather_facts: yes
+  become: yes
+  
+  vars:
+    ssh_public_key: "{{ lookup('file', '~/.ssh/proxmox_ansible.pub') }}"
+    
+  tasks:
+    - name: Get list of running VMs
+      proxmox_vm_info:
+        api_host: "{{ ansible_host | default(inventory_hostname) }}"
+        api_user: "{{ proxmox_api_user | default('root@pam') }}"
+        api_password: "{{ proxmox_api_password }}"
+        validate_certs: false
+        node: "{{ proxmox_node | default(inventory_hostname) }}"
+        type: qemu
+      register: vm_list
+      tags: [qemu, vm]
+      
+    - name: Get list of running containers
+      proxmox_vm_info:
+        api_host: "{{ ansible_host | default(inventory_hostname) }}"
+        api_user: "{{ proxmox_api_user | default('root@pam') }}"
+        api_password: "{{ proxmox_api_password }}"
+        validate_certs: false
+        node: "{{ proxmox_node | default(inventory_hostname) }}"
+        type: lxc
+      register: ct_list
+      tags: [lxc, container]
+      
+    - name: Set up SSH access to running VMs
+      include_tasks: ../tasks/proxmox/ssh_access_vm.yml
+      vars:
+        vm_id: "{{ item.vmid }}"
+      loop: "{{ vm_list.proxmox_vms | selectattr('status', 'equalto', 'running') | list }}"
+      loop_control:
+        label: "VM {{ item.name }} ({{ item.vmid }})"
+      tags: [qemu, vm]
+      
+    - name: Set up SSH access to running containers
+      include_tasks: ../tasks/proxmox/ssh_access_lxc.yml
+      vars:
+        ct_id: "{{ item.vmid }}"
+      loop: "{{ ct_list.proxmox_vms | selectattr('status', 'equalto', 'running') | list }}"
+      loop_control:
+        label: "Container {{ item.name }} ({{ item.vmid }})"
+      tags: [lxc, container]

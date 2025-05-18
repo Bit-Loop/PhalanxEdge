@@ -1,0 +1,16 @@
+- name: create images directory
+  file:
+    path: /var/lib/vm-images
+    state: directory
+    mode: 0755
+
+  tags: [ "proxmox", "proxmox::images" ]
+
+- name: download images
+  get_url:
+    url: "{{ item.url }}"
+    dest: "/var/lib/vm-images/{{ item.target }}"
+    checksum: "{{ item.checksum }}"
+
+  loop: "{{ images }}"
+  tags: [ "proxmox", "proxmox::images" ]

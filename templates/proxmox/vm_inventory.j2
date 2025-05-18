@@ -1,0 +1,45 @@
+# Proxmox Generated VM Inventory
+# Generated on: {{ ansible_date_time.date }} at {{ ansible_date_time.time }}
+---
+all:
+  children:
+    proxmox_vms:
+      hosts:
+        {% for vm in all_vms %}
+        {% if vm.name %}
+        {{ vm.name | regex_replace('[^a-zA-Z0-9_-]', '_') }}:
+          vmid: {{ vm.vmid }}
+          proxmox_node: {{ inventory_hostname }}
+          vm_type: qemu
+          vm_status: {{ vm.status }}
+          ansible_host: ~
+        {% endif %}
+        {% endfor %}
+    proxmox_containers:
+      hosts:
+        {% for ct in all_containers %}
+        {% if ct.name %}
+        {{ ct.name | regex_replace('[^a-zA-Z0-9_-]', '_') }}:
+          ctid: {{ ct.vmid }}
+          proxmox_node: {{ inventory_hostname }}
+          vm_type: lxc
+          vm_status: {{ ct.status }}
+          ansible_host: ~
+        {% endif %}
+        {% endfor %}
+    proxmox_running:
+      hosts:
+        {% for vm in all_vms if vm.status == 'running' and vm.name %}
+        {{ vm.name | regex_replace('[^a-zA-Z0-9_-]', '_') }}:
+        {% endfor %}
+        {% for ct in all_containers if ct.status == 'running' and ct.name %}
+        {{ ct.name | regex_replace('[^a-zA-Z0-9_-]', '_') }}:
+        {% endfor %}
+    proxmox_stopped:
+      hosts:
+        {% for vm in all_vms if vm.status == 'stopped' and vm.name %}
+        {{ vm.name | regex_replace('[^a-zA-Z0-9_-]', '_') }}:
+        {% endfor %}
+        {% for ct in all_containers if ct.status == 'stopped' and ct.name %}
+        {{ ct.name | regex_replace('[^a-zA-Z0-9_-]', '_') }}:
+        {% endfor %}

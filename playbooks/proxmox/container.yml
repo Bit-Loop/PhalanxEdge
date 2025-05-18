@@ -1,0 +1,282 @@
+---
+# PROXMOX CONTAINER MANAGEMENT
+# This playbook handles LXC container lifecycle management including creation,
+# cloning, updating, and deletion of containers in Proxmox.
+
+- name: Proxmox Container Management
+  hosts: proxmox
+  gather_facts: yes
+  become: yes
+  vars_files:
+    - "{{ playbook_dir }}/../vars/proxmox_secrets.yml"
+    - "{{ playbook_dir }}/../vars/proxmox_container_templates.yml"
+
+  pre_tasks:
+    - name: Create audit log
+      blockinfile:
+        path: "{{ real_home }}/.ansible/logs/proxmox_audit_{{ ansible_date_time.date }}.log"
+        create: yes
+        mode: '0640'
+        block: |
+          Proxmox container management initiated at {{ ansible_date_time.iso8601 }}
+          User: {{ lookup('env', 'USER') }}
+          Host: {{ inventory_hostname }}
+          Operation: Container management
+      delegate_to: localhost
+      become: no
+
+  tasks:
+    # BLOCK 1: PREREQUISITES
+    - name: Verify prerequisites
+      block:
+        - name: Check Proxmox API access
+          uri:
+            url: "https://{{ proxmox_api_host }}:{{ proxmox_api_port | default('8006') }}/api2/json/version"
+            validate_certs: "{{ proxmox_verify_ssl | default(false) }}"
+            user: "{{ proxmox_api_user }}"
+            password: "{{ proxmox_api_password }}"
+            force_basic_auth: yes
+          register: api_check
+          delegate_to: localhost
+          failed_when: api_check.status != 200
+
+        - name: Install required Python modules
+          pip:
+            name:
+              - proxmoxer
+              - requests
+            state: present
+      tags: [always]
+
+    # BLOCK 2: TEMPLATE MANAGEMENT
+    - name: Manage container templates
+      block:
+        - name: Check for existing templates
+          shell: pveam list | grep -v VALIDUNTIL | awk '{print $1}'
+          register: available_templates
+          changed_when: false
+
+        - name: Update template cache
+          shell: pveam update
+          register: pveam_update
+          changed_when: pveam_update.rc == 0
+
+        - name: Download container templates
+          shell: pveam download local {{ item.template }}
+          loop: "{{ container_templates | default([]) }}"
+          when: item.template not in available_templates.stdout_lines
+          register: downloaded_templates
+          changed_when: downloaded_templates.rc == 0
+
+        - name: Display downloaded templates
+          debug:
+            msg: "Downloaded templates: {{ downloaded_templates.results | selectattr('changed', 'equalto', true) | map(attribute='item.template') | list }}"
+          when: downloaded_templates.results | selectattr('changed', 'equalto', true) | list | length > 0
+      tags: [templates]
+
+    # BLOCK 3: CONTAINER CREATION
+    - name: Manage containers
+      block:
+        - name: Get current containers
+          community.general.proxmox_kvm:
+            api_host: "{{ proxmox_api_host }}"
+            api_user: "{{ proxmox_api_user }}"
+            api_password: "{{ proxmox_api_password }}"
+            api_token_id: "{{ proxmox_api_token_id | default(omit) }}"
+            api_token_secret: "{{ proxmox_api_token_secret | default(omit) }}"
+            node: "{{ inventory_hostname }}"
+            verify_ssl: "{{ proxmox_verify_ssl | default(false) }}"
+          register: container_list
+          delegate_to: localhost
+
+        - name: Create containers
+          community.general.proxmox_lxc:
+            api_host: "{{ proxmox_api_host }}"
+            api_user: "{{ proxmox_api_user }}"
+            api_password: "{{ proxmox_api_password }}"
+            api_token_id: "{{ proxmox_api_token_id | default(omit) }}"
+            api_token_secret: "{{ proxmox_api_token_secret | default(omit) }}"
+            node: "{{ inventory_hostname }}"
+            hostname: "{{ item.name }}"
+            vmid: "{{ item.id }}"
+            ostemplate: "{{ item.template }}"
+            storage: "{{ item.storage | default('local-lvm') }}"
+            memory: "{{ item.memory | default(512) }}"
+            swap: "{{ item.swap | default(512) }}"
+            cores: "{{ item.cores | default(1) }}"
+            disk: "{{ item.disk | default('2') }}"
+            netif: "{{ item.netif | default(omit) }}"
+            password: "{{ item.password | default(omit) }}"
+            pubkey: "{{ item.pubkey | default(omit) }}"
+            unprivileged: "{{ item.unprivileged | default(1) }}"
+            features:
+              nesting: "{{ item.nesting | default(0) }}"
+            timeout: 90
+            state: present
+          loop: "{{ container_definitions | default([]) }}"
+          when: 
+            - item.state | default('present') == 'present'
+            - "'CT ' + item.id|string not in container_list.proxmox_vms|map(attribute='name')|list"
+          delegate_to: localhost
+          register: containers_created
+
+        - name: Configure containers
+          community.general.proxmox_lxc:
+            api_host: "{{ proxmox_api_host }}"
+            api_user: "{{ proxmox_api_user }}"
+            api_password: "{{ proxmox_api_password }}"
+            api_token_id: "{{ proxmox_api_token_id | default(omit) }}"
+            api_token_secret: "{{ proxmox_api_token_secret | default(omit) }}"
+            node: "{{ inventory_hostname }}"
+            vmid: "{{ item.id }}"
+            memory: "{{ item.memory | default(512) }}"
+            swap: "{{ item.swap | default(512) }}"
+            cores: "{{ item.cores | default(1) }}"
+            onboot: "{{ item.onboot | default(1) }}"
+            nameserver: "{{ item.nameserver | default(omit) }}"
+            searchdomain: "{{ item.searchdomain | default(omit) }}"
+            state: present
+          loop: "{{ container_definitions | default([]) }}"
+          when: 
+            - item.state | default('present') == 'present'
+          delegate_to: localhost
+
+        - name: Start containers that should be running
+          community.general.proxmox_lxc:
+            api_host: "{{ proxmox_api_host }}"
+            api_user: "{{ proxmox_api_user }}"
+            api_password: "{{ proxmox_api_password }}"
+            api_token_id: "{{ proxmox_api_token_id | default(omit) }}"
+            api_token_secret: "{{ proxmox_api_token_secret | default(omit) }}"
+            node: "{{ inventory_hostname }}"
+            vmid: "{{ item.id }}"
+            state: started
+          loop: "{{ container_definitions | default([]) }}"
+          when: 
+            - item.state | default('started') == 'started'
+          delegate_to: localhost
+
+        - name: Stop containers that should be stopped
+          community.general.proxmox_lxc:
+            api_host: "{{ proxmox_api_host }}"
+            api_user: "{{ proxmox_api_user }}"
+            api_password: "{{ proxmox_api_password }}"
+            api_token_id: "{{ proxmox_api_token_id | default(omit) }}"
+            api_token_secret: "{{ proxmox_api_token_secret | default(omit) }}"
+            node: "{{ inventory_hostname }}"
+            vmid: "{{ item.id }}"
+            state: stopped
+          loop: "{{ container_definitions | default([]) }}"
+          when: 
+            - item.state | default('started') == 'stopped'
+          delegate_to: localhost
+
+        - name: Delete containers that should be absent
+          community.general.proxmox_lxc:
+            api_host: "{{ proxmox_api_host }}"
+            api_user: "{{ proxmox_api_user }}"
+            api_password: "{{ proxmox_api_password }}"
+            api_token_id: "{{ proxmox_api_token_id | default(omit) }}"
+            api_token_secret: "{{ proxmox_api_token_secret | default(omit) }}"
+            node: "{{ inventory_hostname }}"
+            vmid: "{{ item.id }}"
+            state: absent
+          loop: "{{ container_definitions | default([]) }}"
+          when: 
+            - item.state | default('present') == 'absent'
+          delegate_to: localhost
+      tags: [container]
+
+    # BLOCK 4: POST-CONFIGURATION TASKS
+    - name: Post-configuration tasks
+      block:
+        - name: Wait for containers to be ready
+          wait_for:
+            host: "{{ item.ip }}"
+            port: 22
+            timeout: 300
+          loop: "{{ container_definitions | default([]) }}"
+          when: 
+            - item.state | default('started') == 'started'
+            - item.ip is defined
+          ignore_errors: yes
+          delegate_to: localhost
+          
+        - name: Run post-creation commands
+          shell: "{{ item.post_command }}"
+          loop: "{{ container_definitions | default([]) }}"
+          when: 
+            - item.state | default('started') == 'started'
+            - item.post_command is defined
+          register: post_commands
+          changed_when: post_commands.rc == 0
+      tags: [post_config]
+
+    # BLOCK 5: CONTAINER BACKUP
+    - name: Manage container backups
+      block:
+        - name: Create backup directory
+          file:
+            path: "{{ item.storage_path | default('/var/lib/vz/dump') }}"
+            state: directory
+            mode: '0755'
+          loop: "{{ backup_configurations | default([]) }}"
+          when: item.storage_type | default('local') == 'local'
+
+        - name: Schedule backups
+          cron:
+            name: "Container backup - {{ item.name }}"
+            hour: "{{ item.hour | default('1') }}"
+            minute: "{{ item.minute | default('0') }}"
+            user: root
+            job: >
+              vzdump {{ item.ctids | join(',') }} 
+              --compress {{ item.compression | default('zstd') }} 
+              --mode {{ item.mode | default('suspend') }} 
+              --storage {{ item.storage | default('local') }} 
+              --maxfiles {{ item.retention | default('5') }}
+          loop: "{{ backup_configurations | default([]) }}"
+          when: item.state | default('present') == 'present'
+
+        - name: Remove backup schedules
+          cron:
+            name: "Container backup - {{ item.name }}"
+            state: absent
+          loop: "{{ backup_configurations | default([]) }}"
+          when: item.state | default('present') == 'absent'
+      tags: [backup]
+
+    # BLOCK 6: INTEGRATION WITH PHALANXEDGE
+    - name: Integrate with PhalanxEdge
+      block:
+        - name: Collect container information
+          shell: |
+            pct list | grep -v VMID | awk '{print $1 " " $2 " " $3}'
+          register: container_info
+          changed_when: false
+          
+        - name: Parse container information
+          set_fact:
+            parsed_containers: "{{ container_info.stdout_lines | map('split', ' ') | list }}"
+          
+        - name: Generate container inventory
+          template:
+            src: "{{ playbook_dir }}/../templates/proxmox/container_inventory.j2"
+            dest: "{{ real_home }}/.ansible/inventory/proxmox_containers.yml"
+            mode: '0644'
+          delegate_to: localhost
+          vars:
+            containers: "{{ parsed_containers }}"
+            inventory_date: "{{ ansible_date_time.iso8601 }}"
+          run_once: true
+
+        - name: Merge VM and container inventories
+          shell: |
+            ansible-inventory -i {{ real_home }}/.ansible/inventory/proxmox_vms.yml -i {{ real_home }}/.ansible/inventory/proxmox_containers.yml --list > {{ real_home }}/.ansible/inventory/proxmox_all.yml
+          delegate_to: localhost
+          run_once: true
+          when: 
+            - inventory_hostname == groups['proxmox'][0]
+            - merged_inventory | default(true)
+          changed_when: true
+      tags: [integration]

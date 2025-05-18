@@ -1,0 +1,65 @@
+# unicorn pam ssh -a -C -- ansible-playbook playbooks/ansible-admin/proxmox-ntp-report.yml -f 30
+- hosts: localhost
+  tasks:
+    - name: Get local file
+      set_fact:
+        local_file: "~/ProxmoxNTPReport.{{ ansible_date_time.date + '-' + ansible_date_time.hour + ansible_date_time.minute + ansible_date_time.second }}.csv"
+
+    - name: Create local file
+      delegate_to: localhost
+      shell: |
+        echo "Hostname,NTP Daemon,NTP Source,System Time,Ansible Time,Diff" > {{ local_file }}
+
+- hosts:
+    - pm
+  strategy: free
+  user: root
+  vars:
+    report_file: "{{ hostvars['localhost']['local_file'] }}"
+  tasks:
+    - name: Check if using chrony or timesyncd
+      shell: |
+        if [ "$(systemctl is-active chronyd)" = "active" ]; then
+          echo "chrony"
+        elif [ "$(systemctl is-active systemd-timesyncd)" = "active" ]; then
+          echo "timesyncd"
+        else
+          echo "none"
+        fi
+      register: ntp_daemon
+
+    - name: debug ntp_daemon
+      debug:
+        var: ntp_daemon
+
+    - name: chrony - get configured pools from chrony.conf
+      shell: cat /etc/chrony/chrony.conf | grep ^pool | awk '{print $2}'
+      when: ntp_daemon.stdout == "chrony"
+      register: chrony_pools
+
+    - name: timesyncd - get configured pools from timesyncd.conf
+      shell: cat /etc/systemd/timesyncd.conf | grep ^NTP= | awk -F= '{print $2}'
+      when: ntp_daemon.stdout == "timesyncd"
+      register: timesyncd_pools
+
+    - name: set server_ntp_pools
+      set_fact:
+        server_ntp_pools: "{{ chrony_pools.stdout if ntp_daemon.stdout == 'chrony' else timesyncd_pools.stdout }}"
+
+    - name: Get System Time
+      shell: date +%s
+      register: system_time
+
+    - name: Get Ansible time
+      set_fact:
+        ref_time: "{{ ansible_date_time.epoch }}"
+        delegate_to: localhost
+
+    - name: Calculate time difference
+      set_fact:
+        time_diff: "{{ system_time.stdout | int - ref_time | int }}"
+
+    - name: Generate NTP Report
+      delegate_to: localhost
+      shell: |
+        echo '{{ inventory_hostname }},"{{ ntp_daemon.stdout }}","{{ server_ntp_pools }}",{{ system_time.stdout }},{{ ref_time }},{{ time_diff }}' >> {{ report_file }}

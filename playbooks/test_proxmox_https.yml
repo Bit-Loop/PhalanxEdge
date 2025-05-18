@@ -1,0 +1,50 @@
+---
+- name: Test Proxmox API with explicit HTTPS
+  hosts: pve-test
+  gather_facts: yes
+  vars:
+    api_password: "{{ lookup('file', '~/.ansible/.api_pass') | trim }}"
+  
+  tasks:
+    - name: Show connection details
+      debug:
+        msg: 
+          - "Host: {{ ansible_host }}"
+          - "API URL: https://{{ ansible_host }}:8006"
+          - "API User: root@pam"
+    
+    - name: Get Proxmox API version
+      uri:
+        url: "https://{{ ansible_host }}:8006/api2/json/version"
+        method: GET
+        user: "root@pam"
+        password: "{{ api_password }}"
+        force_basic_auth: yes
+        validate_certs: no
+        return_content: yes
+        follow_redirects: all
+        status_code: [200]
+      register: version_info
+      
+    - name: Display version information
+      debug:
+        msg: "Proxmox version: {{ version_info.json.data.version }}"
+
+    - name: Get node information
+      uri:
+        url: "https://{{ ansible_host }}:8006/api2/json/nodes"
+        method: GET
+        user: "root@pam"
+        password: "{{ api_password }}"
+        force_basic_auth: yes  
+        validate_certs: no
+        return_content: yes
+        follow_redirects: all
+        status_code: [200]
+      register: node_info
+      
+    - name: Display node information
+      debug:
+        msg: 
+          - "Proxmox nodes: {{ node_info.json.data | map(attribute='node') | list }}"
+          - "API connection successful!"

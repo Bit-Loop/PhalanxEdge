@@ -1,0 +1,6 @@
+plugin: proxmox
+url: https://192.168.1.47:8006
+user: root@pam
+token_id: ansible-automation
+token_secret: "{{ lookup('file', '~/.ansible/.proxmox_token_value') | trim }}"
+validate_certs: false

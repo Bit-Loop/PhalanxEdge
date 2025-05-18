@@ -1,0 +1,169 @@
+---
+# Proxmox Monitoring and Status Reporting
+# This playbook collects and generates detailed status reports for Proxmox nodes and VMs
+
+- name: Proxmox Monitoring and Status Collection
+  hosts: proxmox
+  gather_facts: yes
+  become: yes
+  vars_files:
+    - "{{ playbook_dir }}/../vars/proxmox_secrets.yml"
+
+  pre_tasks:
+    - name: Create monitoring log directory
+      file:
+        path: "{{ real_home }}/.ansible/logs/proxmox_monitoring"
+        state: directory
+        mode: '0755'
+      delegate_to: localhost
+      become: no
+      run_once: true
+
+  tasks:
+    # BLOCK 1: NODE STATUS
+    - name: Collect node status
+      block:
+        - name: Get node status
+          uri:
+            url: "https://{{ proxmox_api_host }}:{{ proxmox_api_port | default('8006') }}/api2/json/nodes/{{ inventory_hostname }}/status"
+            validate_certs: "{{ proxmox_verify_ssl | default(false) }}"
+            user: "{{ proxmox_api_user }}"
+            password: "{{ proxmox_api_password }}"
+            force_basic_auth: yes
+          register: node_status
+          delegate_to: localhost
+
+        - name: Set node status facts
+          set_fact:
+            node_uptime: "{{ (node_status.json.data.uptime / 86400) | round(2) }} days"
+            node_memory_used_percent: "{{ (100 - (node_status.json.data.memory.free / node_status.json.data.memory.total * 100)) | round(2) }}%"
+            node_cpu_used_percent: "{{ (node_status.json.data.cpu * 100) | round(2) }}%"
+            node_load_avg: "{{ node_status.json.data.loadavg }}"
+      tags: [node_status]
+
+    # BLOCK 2: STORAGE STATUS
+    - name: Collect storage status
+      block:
+        - name: Get storage status
+          uri:
+            url: "https://{{ proxmox_api_host }}:{{ proxmox_api_port | default('8006') }}/api2/json/nodes/{{ inventory_hostname }}/storage"
+            validate_certs: "{{ proxmox_verify_ssl | default(false) }}"
+            user: "{{ proxmox_api_user }}"
+            password: "{{ proxmox_api_password }}"
+            force_basic_auth: yes
+          register: storage_status
+          delegate_to: localhost
+
+        - name: Format storage info
+          set_fact:
+            storage_info: "{{ storage_status.json.data | json_query('[*].{name: storage, type: type, total: total, used: used, used_percent: (used/total*100)|round(2), avail: avail}') }}"
+      tags: [storage_status]
+
+    # BLOCK 3: VM STATUS
+    - name: Collect VM status
+      block:
+        - name: Get VM list
+          uri:
+            url: "https://{{ proxmox_api_host }}:{{ proxmox_api_port | default('8006') }}/api2/json/nodes/{{ inventory_hostname }}/qemu"
+            validate_certs: "{{ proxmox_verify_ssl | default(false) }}"
+            user: "{{ proxmox_api_user }}"
+            password: "{{ proxmox_api_password }}"
+            force_basic_auth: yes
+          register: vm_list
+          delegate_to: localhost
+
+        - name: Format VM info
+          set_fact:
+            vm_info: "{{ vm_list.json.data | json_query('[*].{vmid: vmid, name: name, status: status, maxmem: maxmem, maxdisk: maxdisk, cpu: cpus}') }}"
+      tags: [vm_status]
+
+    # BLOCK 4: CONTAINER STATUS
+    - name: Collect container status
+      block:
+        - name: Get container list
+          uri:
+            url: "https://{{ proxmox_api_host }}:{{ proxmox_api_port | default('8006') }}/api2/json/nodes/{{ inventory_hostname }}/lxc"
+            validate_certs: "{{ proxmox_verify_ssl | default(false) }}"
+            user: "{{ proxmox_api_user }}"
+            password: "{{ proxmox_api_password }}"
+            force_basic_auth: yes
+          register: lxc_list
+          delegate_to: localhost
+
+        - name: Format container info
+          set_fact:
+            lxc_info: "{{ lxc_list.json.data | json_query('[*].{vmid: vmid, name: name, status: status, maxmem: maxmem, maxdisk: maxdisk, cpu: cpus}') }}"
+      tags: [container_status]
+
+    # BLOCK 5: CLUSTER STATUS (if applicable)
+    - name: Collect cluster status
+      block:
+        - name: Get cluster status
+          uri:
+            url: "https://{{ proxmox_api_host }}:{{ proxmox_api_port | default('8006') }}/api2/json/cluster/status"
+            validate_certs: "{{ proxmox_verify_ssl | default(false) }}"
+            user: "{{ proxmox_api_user }}"
+            password: "{{ proxmox_api_password }}"
+            force_basic_auth: yes
+          register: cluster_status
+          delegate_to: localhost
+          failed_when: false
+
+        - name: Format cluster info
+          set_fact:
+            cluster_info: "{{ cluster_status.json.data | default([]) }}"
+      tags: [cluster_status]
+
+    # BLOCK 6: GENERATE REPORTS
+    - name: Generate status reports
+      block:
+        - name: Generate node status report
+          template:
+            src: "{{ playbook_dir }}/../templates/proxmox/node_status_report.j2"
+            dest: "{{ real_home }}/.ansible/logs/proxmox_monitoring/node_{{ inventory_hostname }}_{{ ansible_date_time.date }}.txt"
+          delegate_to: localhost
+          become: no
+          vars:
+            node_name: "{{ inventory_hostname }}"
+            node_uptime: "{{ node_uptime | default('Unknown') }}"
+            node_memory_used: "{{ node_memory_used_percent | default('Unknown') }}"
+            node_cpu_used: "{{ node_cpu_used_percent | default('Unknown') }}"
+            node_load: "{{ node_load_avg | default('Unknown') }}"
+            storage_info: "{{ storage_info | default([]) }}"
+            vm_info: "{{ vm_info | default([]) }}"
+            lxc_info: "{{ lxc_info | default([]) }}"
+            cluster_info: "{{ cluster_info | default([]) }}"
+
+        - name: Generate consolidated report
+          template:
+            src: "{{ playbook_dir }}/../templates/proxmox/consolidated_report.j2"
+            dest: "{{ real_home }}/.ansible/logs/proxmox_monitoring/proxmox_status_{{ ansible_date_time.date }}.html"
+          delegate_to: localhost
+          become: no
+          run_once: true
+      tags: [generate_report]
+
+    # BLOCK 7: EXPORT INVENTORY
+    - name: Export dynamic inventory
+      block:
+        - name: Generate VM inventory
+          template:
+            src: "{{ playbook_dir }}/../templates/proxmox/vm_inventory.j2"
+            dest: "{{ real_home }}/.ansible/inventory/generated/proxmox_vms_{{ ansible_date_time.date }}.yml"
+          delegate_to: localhost
+          become: no
+          run_once: true
+          vars:
+            all_vms: "{{ vm_info | default([]) }}"
+            all_containers: "{{ lxc_info | default([]) }}"
+
+        - name: Create inventory symlink
+          file:
+            src: "{{ real_home }}/.ansible/inventory/generated/proxmox_vms_{{ ansible_date_time.date }}.yml"
+            dest: "{{ real_home }}/.ansible/inventory/generated/proxmox_vms_latest.yml"
+            state: link
+            force: yes
+          delegate_to: localhost
+          become: no
+          run_once: true
+      tags: [export_inventory]

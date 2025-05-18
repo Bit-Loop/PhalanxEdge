@@ -1,0 +1,41 @@
+---
+- name: Set up SSH keys for Proxmox
+  hosts: all
+  gather_facts: yes
+  tasks:
+    - name: Create .ssh directory if it doesn't exist
+      file:
+        path: ~/.ssh
+        state: directory
+        mode: '0700'
+      delegate_to: localhost
+      run_once: true
+      
+    - name: Generate SSH key if it doesn't exist
+      shell: |
+        if [ ! -f ~/.ssh/proxmox_ansible ]; then
+          ssh-keygen -t ed25519 -f ~/.ssh/proxmox_ansible -N "" -C "ansible-automation@$(hostname)"
+          echo "SSH key generated"
+        else
+          echo "SSH key already exists"
+        fi
+      register: keygen_result
+      changed_when: "'SSH key generated' in keygen_result.stdout"
+      delegate_to: localhost
+      run_once: true
+    
+    - name: Display host information
+      debug:
+        msg: "Connected to {{ inventory_hostname }} ({{ ansible_host }})"
+    
+    - name: Copy SSH key to authorized keys
+      authorized_key:
+        user: root
+        state: present
+        key: "{{ lookup('file', '~/.ssh/proxmox_ansible.pub') }}"
+        
+    - name: Test SSH key-based connection
+      ping:
+      vars:
+        ansible_ssh_private_key_file: "~/.ssh/proxmox_ansible"
+        ansible_password: ""

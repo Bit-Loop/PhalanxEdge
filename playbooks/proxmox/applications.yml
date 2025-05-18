@@ -1,0 +1,19 @@
+# playbooks/proxmox_applications.yml
+---
+- name: Deploy Applications on Proxmox
+  hosts: proxmox
+  user: root
+  vars_files:
+    - vars/vm_definitions.yml
+  roles:
+    - role: proxmox/vm
+      tags: vm
+    
+    - role: proxmox/container
+      tags: container
+    
+    - role: proxmox-checks  # Your existing checks
+      tags: monitoring
+    
+    - role: proxmox/inventory
+      tags: inventory
