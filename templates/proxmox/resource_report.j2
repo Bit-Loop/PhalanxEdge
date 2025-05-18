@@ -1,0 +1,284 @@
+# filepath: /home/ubuntu/.ansible/templates/proxmox/resource_report.j2
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proxmox Resource Report - {{ ansible_date_time.date }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .header {
+            background-color: #23282d;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px 5px 0 0;
+            margin-bottom: 20px;
+        }
+        h1, h2, h3 {
+            margin-top: 20px;
+            color: #2b5797;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            text-align: left;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .warning {
+            background-color: #fff3cd;
+            color: #856404;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        .critical {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        .good {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        .node-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+        .vm-section {
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #f0f4f8;
+            border-left: 4px solid #2b5797;
+        }
+        .status-running {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .status-stopped {
+            color: #dc3545;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Proxmox Resource Report</h1>
+            <p>Generated on: {{ ansible_date_time.date }} at {{ ansible_date_time.time }}</p>
+        </div>
+
+        <h2>Cluster Overview</h2>
+        {% if cluster_status is defined and cluster_status.stdout is defined %}
+        <pre>{{ cluster_status.stdout }}</pre>
+        {% else %}
+        <p>No cluster information available</p>
+        {% endif %}
+
+        <h2>Nodes</h2>
+        {% for node in play_hosts %}
+        <div class="node-section">
+            <h3>{{ node }}</h3>
+            <table>
+                <tr>
+                    <th>Status</th>
+                    <td>{{ hostvars[node]['proxmox_status'] | default('unknown') }}</td>
+                </tr>
+                <tr>
+                    <th>Version</th>
+                    <td>{{ hostvars[node]['node_info']['version'][0] | default('unknown') if hostvars[node]['node_info'] is defined else 'unknown' }}</td>
+                </tr>
+                <tr>
+                    <th>Uptime</th>
+                    <td>{{ hostvars[node]['node_info']['uptime'] | default('unknown') if hostvars[node]['node_info'] is defined else 'unknown' }}</td>
+                </tr>
+                <tr>
+                    <th>Kernel</th>
+                    <td>{{ hostvars[node]['node_info']['kernel'] | default('unknown') if hostvars[node]['node_info'] is defined else 'unknown' }}</td>
+                </tr>
+            </table>
+
+            <h4>CPU & Memory</h4>
+            <table>
+                <tr>
+                    <th>CPU</th>
+                    <td>
+                        {% if hostvars[node]['node_info'] is defined and hostvars[node]['node_info']['cpu'] is defined %}
+                        {% for line in hostvars[node]['node_info']['cpu'] %}
+                        {{ line }}<br>
+                        {% endfor %}
+                        {% else %}
+                        No CPU information available
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <th>Memory</th>
+                    <td>
+                        {% if hostvars[node]['node_info'] is defined and hostvars[node]['node_info']['memory'] is defined %}
+                        {% for line in hostvars[node]['node_info']['memory'] %}
+                        {{ line }}<br>
+                        {% endfor %}
+                        {% else %}
+                        No memory information available
+                        {% endif %}
+                    </td>
+                </tr>
+            </table>
+
+            <h4>Storage</h4>
+            <table>
+                <tr>
+                    <th>Disk Usage</th>
+                    <td>
+                        {% if hostvars[node]['node_info'] is defined and hostvars[node]['node_info']['disk'] is defined %}
+                        {% for line in hostvars[node]['node_info']['disk'] %}
+                        {{ line }}<br>
+                        {% endfor %}
+                        {% else %}
+                        No disk information available
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <th>Storage Status</th>
+                    <td>
+                        {% if hostvars[node]['storage_info'] is defined and hostvars[node]['storage_info']['storage_status'] is defined %}
+                        {% for line in hostvars[node]['storage_info']['storage_status'] %}
+                        {{ line }}<br>
+                        {% endfor %}
+                        {% else %}
+                        No storage status available
+                        {% endif %}
+                    </td>
+                </tr>
+            </table>
+
+            {% if hostvars[node]['storage_info'] is defined and hostvars[node]['storage_info']['has_errors'] %}
+            <div class="critical">
+                <h4>⚠️ SMART Errors Detected!</h4>
+                <pre>
+                {% for line in hostvars[node]['storage_info']['smart_errors'] %}
+                {{ line }}
+                {% endfor %}
+                </pre>
+            </div>
+            {% endif %}
+
+            <h4>Network Interfaces</h4>
+            <table>
+                <tr>
+                    <th>Interface</th>
+                    <th>IP Address</th>
+                </tr>
+                {% if hostvars[node]['node_info'] is defined and hostvars[node]['node_info']['network'] is defined %}
+                {% for line in hostvars[node]['node_info']['network'] %}
+                {% set parts = line.split(' ') %}
+                <tr>
+                    <td>{{ parts[0] }}</td>
+                    <td>{{ parts[1] }}</td>
+                </tr>
+                {% endfor %}
+                {% else %}
+                <tr>
+                    <td colspan="2">No network information available</td>
+                </tr>
+                {% endif %}
+            </table>
+        </div>
+        {% endfor %}
+
+        <h2>Virtual Machines</h2>
+        {% set all_vms = vm_info['proxmox_vms'] | selectattr('type', 'equalto', 'qemu') | list %}
+        {% if all_vms|length > 0 %}
+        <table>
+            <tr>
+                <th>Name</th>
+                <th>VMID</th>
+                <th>Status</th>
+                <th>Node</th>
+                <th>CPU</th>
+                <th>Memory</th>
+                <th>Disk</th>
+            </tr>
+            {% for vm in all_vms %}
+            <tr>
+                <td>{{ vm.name }}</td>
+                <td>{{ vm.vmid }}</td>
+                <td class="status-{{ vm.status }}">{{ vm.status }}</td>
+                <td>{{ vm.node }}</td>
+                <td>{{ vm.maxcpu }}</td>
+                <td>{{ (vm.maxmem / 1024 / 1024 / 1024) | round(1) }} GB</td>
+                <td>{{ (vm.maxdisk / 1024 / 1024 / 1024) | round(1) }} GB</td>
+            </tr>
+            {% endfor %}
+        </table>
+        {% else %}
+        <p>No virtual machines found</p>
+        {% endif %}
+
+        <h2>Containers</h2>
+        {% set all_containers = vm_info['proxmox_vms'] | selectattr('type', 'equalto', 'lxc') | list %}
+        {% if all_containers|length > 0 %}
+        <table>
+            <tr>
+                <th>Name</th>
+                <th>CTID</th>
+                <th>Status</th>
+                <th>Node</th>
+                <th>CPU</th>
+                <th>Memory</th>
+                <th>Disk</th>
+            </tr>
+            {% for ct in all_containers %}
+            <tr>
+                <td>{{ ct.name }}</td>
+                <td>{{ ct.vmid }}</td>
+                <td class="status-{{ ct.status }}">{{ ct.status }}</td>
+                <td>{{ ct.node }}</td>
+                <td>{{ ct.maxcpu }}</td>
+                <td>{{ (ct.maxmem / 1024 / 1024 / 1024) | round(1) }} GB</td>
+                <td>{{ (ct.maxdisk / 1024 / 1024 / 1024) | round(1) }} GB</td>
+            </tr>
+            {% endfor %}
+        </table>
+        {% else %}
+        <p>No containers found</p>
+        {% endif %}
+
+        <div class="footer">
+            <p>Report generated by Ansible automation</p>
+        </div>
+    </div>
+</body>
+</html>

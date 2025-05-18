@@ -1,0 +1,329 @@
+---
+# PHALANXEDGE - PORT DISCOVERY & HOST ACTIVITY MONITORING
+# This playbook performs port scanning on hosts in the Tailscale inventory,
+# including detection of internal/NAT'd IPs behind Tailscale addresses
+# and updates the inventory accordingly. It also includes a subnet scan
+# for local network devices.
+
+# ITJ: 2025-05-14
+
+# For tinkering and testing purposes only.
+# THIS PLAYBOOK IS FOR DEMONSTRATION PURPOSES ONLY
+# AND SHOULD NOT BE USED IN PRODUCTION ENVIRONMENTS WITHOUT
+# PROPER TESTING AND VALIDATION
+
+
+- name: Port Discovery and Host Activity Monitoring
+  hosts: localhost
+  gather_facts: yes
+
+  vars:
+    # User and path configuration
+    real_user: "{{ lookup('env', 'USER') }}"
+    real_home: "/home/{{ real_user }}"
+    
+    # Directory structure - UPDATED LOCATIONS
+    ansible_dir: "{{ real_home }}/.ansible"
+    data_dir: "{{ ansible_dir }}/data/tailscale"
+    history_dir: "{{ data_dir }}/history"
+    tailscale_inventory: "{{ ansible_dir }}/inventory/tailscale.yml"
+    
+    # Scan configuration
+    common_ports: "22,80,443,8080,8443,3389,5900"
+    scan_all_ports: true
+    port_range: "1-10000"
+    scan_timeout: 300
+    concurrent_hosts: 5
+    
+    # Host tracking
+    inactive_threshold_hours: 24
+    
+    # NAT detection configuration
+    detect_nat_ips: true
+    nat_ip_ranges:
+      - "192.168.0.0/16"  # Common home/office networks
+      - "10.0.0.0/8"      # Common enterprise networks
+      - "172.16.0.0/12"   # Common VPC/cloud networks
+    
+    # Notification settings
+    enable_notifications: true
+    notification_method: "log"
+    email_recipient: "{{ lookup('env', 'USER') }}@{{ ansible_hostname }}"
+    slack_webhook: ""
+    
+    # Files - Same names, new locations
+    port_inventory_file: "{{ data_dir }}/port_inventory.yml"
+    nat_mapping_file: "{{ data_dir }}/nat_mappings.json"
+
+  tasks:
+    # BLOCK 0: SETUP ENVIRONMENT
+    - name: Ensure required directories exist
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0750'
+        owner: "{{ real_user }}"
+        group: "{{ real_user }}"
+      loop:
+        - "{{ data_dir }}"
+        - "{{ history_dir }}"
+        - "{{ data_dir }}/notifications"
+      tags: [setup]
+      
+    # NEW BLOCK: TAILSCALE + NAT IP DISCOVERY
+    - name: Discover Tailscale and NAT IPs
+      block:
+        - name: Parse Tailscale inventory
+          command: ansible-inventory --inventory {{ tailscale_inventory }} --list
+          register: inventory_output
+          changed_when: false
+
+        - name: Parse inventory JSON
+          set_fact:
+            tailscale_hosts: "{{ inventory_output.stdout | from_json }}"
+
+        - name: Get active hosts
+          set_fact:
+            active_hosts: "{{ tailscale_hosts.all.children.tailscale.children.active_devices.hosts | default({}) }}"
+            
+        - name: Create initial scan targets list with Tailscale IPs
+          set_fact:
+            scan_targets: "{{ {} }}"
+            
+        - name: Add Tailscale IPs to scan targets
+          set_fact:
+            scan_targets: "{{ scan_targets | combine({item.key: {'ip': item.value.ansible_host, 'type': 'active', 'hostname': item.key}}) }}"
+          loop: "{{ active_hosts | dict2items }}"
+          when: active_hosts is defined
+
+        # Debug inventory and active hosts
+        - name: Debug inventory and active hosts
+          debug:
+            msg: 
+              - "Inventory structure: {{ tailscale_hosts | default({}) }}"
+              - "Active hosts from inventory: {{ active_hosts | default({}) }}"
+              - "Scan targets: {{ scan_targets | default({}) }}"
+            verbosity: 1
+
+        # Only use Tailscale status data if inventory didn't provide hosts
+        - name: Extract active hosts from Tailscale status if no inventory hosts
+          set_fact:
+            scan_targets: >-
+              {% set result = {} %}
+              {% for peer_key, peer in tailscale_status.Peer.items() %}
+                {% if peer.Online | default(false) or peer_key == tailscale_status.Self.PublicKey %}
+                  {% set _ = result.update({peer.HostName: {
+                    'ip': peer.TailscaleIPs[0], 
+                    'type': 'active', 
+                    'hostname': peer.HostName
+                  }}) %}
+                {% endif %}
+              {% endfor %}
+              {{ result }}
+          when: >
+            scan_targets is defined and 
+            (scan_targets | default({})) | length == 0 and
+            tailscale_status is defined
+
+        # Discover NAT IPs using Tailscale status --json for more details
+        - name: Get detailed Tailscale status with JSON
+          shell: tailscale status --json
+          register: tailscale_status_json
+          changed_when: false
+          when: detect_nat_ips | bool
+
+        - name: Parse Tailscale JSON status
+          set_fact:
+            tailscale_status: "{{ tailscale_status_json.stdout | from_json }}"
+          when: detect_nat_ips | bool and tailscale_status_json.stdout is defined
+
+        # Extract NAT and other non-Tailscale IPs from status
+        - name: Extract NAT IPs from Tailscale status
+          set_fact:
+            nat_mappings: "{{ {} }}"
+          when: detect_nat_ips | bool
+
+        # Add ping diagnostics for active hosts to find NAT IPs
+        - name: Ping active hosts to detect NAT IPs
+          shell: |-
+            # First try normal ping
+            ping -c 1 -W 2 {{ item.value.ip }} > /dev/null 2>&1
+            if [ $? -eq 0 ]; then
+              # If ping works, try traceroute to see intermediate hops
+              traceroute -n -w 1 -m 5 {{ item.value.ip }} | grep -E "^ *[1-5] +([0-9]{1,3}\.){3}[0-9]{1,3}"
+            fi
+          register: ping_results
+          with_items: "{{ scan_targets | dict2items }}"
+          ignore_errors: yes
+          changed_when: false
+          loop_control:
+            label: "{{ item.key }}"
+          when: detect_nat_ips | bool
+
+        # Use SSH to get additional info from Linux hosts if available
+        - name: Try to get internal IPs from Linux hosts
+          shell: |-
+            timeout 5 ssh -o StrictHostKeyChecking=no -o BatchMode=yes -o ConnectTimeout=3 {{ item.value.ip }} "hostname -I | grep -v '{{ item.value.ip }}' | grep -E '(192\.168|10\.|172\.(1[6-9]|2[0-9]|3[0-1]))'"
+          register: ssh_results
+          with_items: "{{ scan_targets | dict2items }}"
+          ignore_errors: yes
+          changed_when: false
+          loop_control:
+            label: "{{ item.key }}"
+          when: detect_nat_ips | bool
+
+        # Process collected NAT IPs
+        - name: Process NAT IPs from diagnostics
+          set_fact:
+            nat_mappings: >-
+              {{ nat_mappings | default({}) | combine({item.item.key: {
+                'tailscale_ip': item.item.value.ip,
+                'nat_ips': (
+                  item.stdout_lines | select('match', '(192\\.168|10\\.|172\\.(1[6-9]|2[0-9]|3[0-1])).*') | list | default([]) 
+                ) + (
+                  ssh_results.results | 
+                  selectattr('item.key', 'equalto', item.item.key) | 
+                  map(attribute='stdout_lines') | 
+                  flatten | list | default([])
+                ) | unique | list
+              }}) }}
+          loop: "{{ ping_results.results }}"
+          loop_control:
+            label: "{{ item.item.key }}"
+          when: >
+            detect_nat_ips | bool and 
+            ping_results.results is defined and 
+            (
+              item.stdout_lines | select('match', '(192\\.168|10\\.|172\\.(1[6-9]|2[0-9]|3[0-1])).*') | list | length > 0 or
+              ssh_results.results | selectattr('item.key', 'equalto', item.item.key) | map(attribute='stdout_lines') | flatten | list | length > 0
+            )
+
+        # Add discovered NAT IPs to scan targets
+        - name: Add NAT IPs to scan targets
+          include_tasks: add_nat_ip.yml
+          loop: "{{ nat_mappings | dict2items }}"
+          loop_control:
+            loop_var: outer_item
+            label: "{{ outer_item.key }}"
+          when: detect_nat_ips | bool and nat_mappings is defined and outer_item.value.nat_ips | default([]) | length > 0
+
+        # Write NAT mapping file for reference
+        - name: Write NAT mappings to file
+          copy:
+            content: "{{ nat_mappings | to_nice_json }}"
+            dest: "{{ nat_mapping_file }}"
+            mode: '0640'
+          when: detect_nat_ips | bool and nat_mappings is defined
+
+    # NEW BLOCK: DIRECT SUBNET SCAN
+    - name: Configure direct subnet scan
+      block:
+        - name: Create scan targets as a string first
+          set_fact:
+            subnet_data: "{% set result = {} %}{% for host_num in range(1, 255) %}{% set _ = result.update({'lan-' ~ host_num: {'ip': '192.168.1.' ~ host_num, 'type': 'subnet', 'hostname': 'lan-' ~ host_num}}) %}{% endfor %}{{ result }}"
+          tags: [subnet_scan]
+          
+        - name: Convert string to actual dictionary
+          set_fact:
+            scan_targets: "{{ subnet_data }}"
+          tags: [subnet_scan]
+
+        - name: Set full port range for scanning
+          set_fact:
+            scan_all_ports: true
+            port_range: "1-65535"
+          tags: [subnet_scan]
+            
+        - name: Debug scan targets
+          debug:
+            var: scan_targets
+            verbosity: 1
+          tags: [subnet_scan]
+
+    # MODIFIED PORT SCANNING BLOCK
+    - name: Perform port scanning on both Tailscale and NAT IPs
+      block:
+        - name: Gather facts for timestamp
+          setup:
+          tags: [scan]
+
+        - name: Initialize scan data
+          set_fact:
+            current_scan_data: {}
+            scan_timestamp: "{{ ansible_date_time.iso8601 }}"
+            
+        - name: Set port scan range
+          set_fact:
+            ports_to_scan: "{{ common_ports if not scan_all_ports else '1-65535' if scan_all_ports else port_range }}"
+            
+        - name: Scan ports on hosts
+          shell: |
+            nmap -p {{ ports_to_scan }} {{ item.value.ip }} -T4 --open -oX - 
+          register: nmap_results_raw
+          with_items: "{{ scan_targets | dict2items }}"
+          loop_control:
+            pause: 1
+            label: "{{ item.key }}"
+
+        - name: Process raw nmap results
+          set_fact:
+            nmap_results: "{{ nmap_results_raw.results }}"
+            
+        # The rest of the port scanning and inventory management tasks would proceed as before
+        # but now include both Tailscale and NAT IPs
+        
+        # For each scan result, identify if it's a NAT IP and store both types
+        - name: Process scan results with NAT awareness
+          set_fact:
+            current_scan_data: >-
+              {{ current_scan_data | combine({
+                 item.item.key: {
+                   'hostname': item.item.value.hostname,
+                   'ip': item.item.value.ip,
+                   'type': item.item.value.type,
+                   'tailscale_ip': item.item.value.tailscale_ip | default(item.item.value.ip if item.item.value.type != 'nat' else none),
+                   'scan_time': scan_timestamp,
+                   'status': 'up' if item.stdout | default('') | regex_search('[0-9]+ (open|filtered) ports') else 'down',
+                   'ports': (item.stdout | default('') | regex_findall('[0-9]+/tcp.*open') | map('regex_replace', '/tcp.*', '') | list) or [],
+                   'services': {},
+                   'last_seen': scan_timestamp
+                 }
+               }) }}
+          with_items: "{{ nmap_results }}"
+          
+    # Modify the port inventory file to include both Tailscale and NAT IPs
+    - name: Update port inventory with NAT awareness
+      block:
+        - name: Generate port inventory with NAT mapping
+          copy:
+            content: |
+              ---
+              # Port Discovery Inventory - Generated by PhalanxEdge
+              # Last updated: {{ ansible_date_time.iso8601 }}
+              all:
+                children:
+                  port_discovery:
+                    children:
+                      active_tailscale:
+                        hosts:
+              {% for key, data in current_scan_data.items() if data.status == 'up' and data.type != 'nat' %}
+                          {{ data.hostname }}:
+                            ansible_host: {{ data.ip }}
+                            last_seen: {{ data.last_seen }}
+                            ports: {{ data.ports | to_yaml }}
+                            services: {{ data.services | to_yaml }}
+              {% endfor %}
+                      active_nat:
+                        hosts:
+              {% for key, data in current_scan_data.items() if data.status == 'up' and data.type == 'nat' %}
+                          {{ data.hostname }}_nat_{{ loop.index }}:
+                            ansible_host: {{ data.ip }}
+                            tailscale_ip: {{ data.tailscale_ip }}
+                            last_seen: {{ data.last_seen }}
+                            ports: {{ data.ports | to_yaml }}
+                            services: {{ data.services | to_yaml }}
+              {% endfor %}
+                      inactive_hosts:
+                        # Rest of inventory format...
+            dest: "{{ port_inventory_file }}"
+            mode: '0640'

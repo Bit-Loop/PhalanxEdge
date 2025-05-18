@@ -1,0 +1,28 @@
+# Proxmox dynamic inventory configuration
+plugin: community.general.proxmox
+url: https://{{ proxmox_api_url | default('localhost') }}:8006
+user: "{{ proxmox_api_user | default('root@pam') }}"
+password: "{{ vault_proxmox_api_password }}"
+validate_certs: false  # Change to true in production
+group_prefix: proxmox_
+want_facts: true
+facts_prefix: proxmox_
+vm_status_filter:
+  - running
+  - stopped
+
+# Group VMs by their tags
+keyed_groups:
+  - key: proxmox_tags
+    prefix: tag
+  - key: proxmox_status
+    prefix: status
+  - key: proxmox_type
+    separator: ""
+  - key: proxmox_node
+    prefix: node
+
+# Compose custom variables
+compose:
+  ansible_connection: "{{ 'ssh' if proxmox_type == 'qemu' else ('lxc' if proxmox_type == 'lxc' else 'local') }}"
+  ansible_user: "{{ 'root' if proxmox_type == 'node' else 'admin' }}"

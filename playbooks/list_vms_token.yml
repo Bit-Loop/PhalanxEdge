@@ -1,0 +1,61 @@
+---
+- name: List Proxmox VMs using API Token
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    api_url: "https://192.168.1.47:8006"
+    api_user: "root@pam"
+    api_token_id: "{{ lookup('file', '~/.ansible/.proxmox_token') | trim }}"
+    api_token_value: "{{ lookup('file', '~/.ansible/.proxmox_token_value') | trim }}"
+  
+  tasks:
+    - name: Display token information
+      debug:
+        msg: 
+          - "Using token ID: {{ api_token_id }}"
+          - "Token value length: {{ api_token_value | length }} characters"
+      
+    - name: Get node list
+      uri:
+        url: "{{ api_url }}/api2/json/nodes"
+        method: GET
+        validate_certs: no
+        headers:
+          Authorization: "PVEAPIToken={{ api_user }}!{{ api_token_id }}={{ api_token_value }}"
+      register: node_result
+      
+    - name: Display nodes
+      debug:
+        var: node_result.json.data
+        
+    - name: Get VM list for each node
+      uri:
+        url: "{{ api_url }}/api2/json/nodes/{{ item.node }}/qemu"
+        method: GET
+        validate_certs: no
+        headers:
+          Authorization: "PVEAPIToken={{ api_user }}!{{ api_token_id }}={{ api_token_value }}"
+        timeout: 10
+        status_code: [200, 404]  # Accept 404 if no VMs found
+      loop: "{{ node_result.json.data }}"
+      register: vm_results
+      ignore_errors: yes  # Continue even if one node fails
+      
+    - name: Display VMs by node
+      debug:
+        msg: "Node {{ item.item.node }} VMs: {{ item.json.data | map(attribute='name') | list }}"
+      loop: "{{ vm_results.results }}"
+      when: "item.json.data is defined and item.json.data | length > 0"
+      
+    - name: Display summary
+      debug:
+        msg: "Found VMs across {{ node_result.json.data | length }} nodes"
+      
+    - name: Calculate VM count
+      set_fact:
+        vm_count: "{{ vm_results.results | selectattr('json.data', 'defined') | map(attribute='json.data') | map('length') | sum }}"
+      
+    - name: Display VM count
+      debug:
+        msg: "Total VM count: {{ vm_count }}"

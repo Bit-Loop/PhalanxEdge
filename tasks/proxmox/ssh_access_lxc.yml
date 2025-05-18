@@ -1,0 +1,79 @@
+---
+# Setup SSH access to an LXC Container via Proxmox API
+# This task file is included by setup_ssh_access.yml
+
+- name: Get container's IP addresses
+  shell: pct exec {{ ct_id }} -- ip -o -4 addr show | awk '{print $4}' | cut -d/ -f1
+  register: ct_ip_output
+  failed_when: false
+  changed_when: false
+
+- name: Parse container IP addresses
+  set_fact:
+    ct_ips: "{{ ct_ip_output.stdout_lines | reject('match', '^127\\.') | list }}"
+  when: ct_ip_output is success and ct_ip_output.stdout | length > 0
+
+- name: Display found IP addresses
+  debug:
+    msg: "Found IP addresses for container {{ ct_id }}: {{ ct_ips | default([]) }}"
+  when: ct_ips is defined and ct_ips | length > 0
+
+- name: Create .ssh directory for root user in container
+  shell: pct exec {{ ct_id }} -- mkdir -p /root/.ssh
+  register: mkdir_result
+  failed_when: false
+  changed_when: mkdir_result.rc == 0
+
+- name: Inject SSH key for root user in container
+  shell: >
+    pct exec {{ ct_id }} -- bash -c 
+    "echo '{{ ssh_public_key }}' >> /root/.ssh/authorized_keys"
+  register: inject_result
+  failed_when: false
+  changed_when: inject_result.rc == 0
+  when: mkdir_result is success
+
+- name: Set proper permissions on SSH files in container
+  shell: >
+    pct exec {{ ct_id }} -- bash -c
+    "chmod 700 /root/.ssh && chmod 600 /root/.ssh/authorized_keys"
+  failed_when: false
+  changed_when: true
+  when: inject_result is success
+
+- name: Create .ssh directory for admin user in container (if exists)
+  shell: pct exec {{ ct_id }} -- bash -c '[ -d /home/admin ] && mkdir -p /home/admin/.ssh || exit 1'
+  register: admin_mkdir
+  failed_when: false
+  changed_when: admin_mkdir.rc == 0
+
+- name: Inject SSH key for admin user in container
+  shell: >
+    pct exec {{ ct_id }} -- bash -c
+    "echo '{{ ssh_public_key }}' >> /home/admin/.ssh/authorized_keys"
+  register: admin_inject
+  failed_when: false
+  changed_when: admin_inject.rc == 0
+  when: admin_mkdir is success
+
+- name: Set proper permissions on admin SSH files in container
+  shell: >
+    pct exec {{ ct_id }} -- bash -c
+    "chmod 700 /home/admin/.ssh && 
+     chmod 600 /home/admin/.ssh/authorized_keys &&
+     chown -R admin:admin /home/admin/.ssh"
+  failed_when: false
+  changed_when: true
+  when: admin_inject is success
+
+- name: Try SSH key injection via IP (fallback)
+  shell: >
+    sshpass -p {{ default_ct_password | default('changeme') }}
+    ssh-copy-id -o StrictHostKeyChecking=no -i ~/.ssh/proxmox_ansible.pub admin@{{ item }}
+  loop: "{{ ct_ips | default([]) }}"
+  when: 
+    - ct_ips is defined and ct_ips | length > 0
+    - admin_inject is failed or admin_mkdir is failed
+  register: ssh_copy_result
+  failed_when: false
+  changed_when: ssh_copy_result.rc == 0

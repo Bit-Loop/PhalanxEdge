@@ -1,0 +1,21 @@
+---
+- name: Direct API authentication test
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  
+  tasks:
+    - name: Test API direct authentication
+      uri:
+        url: "https://192.168.1.47:8006/api2/json/version"
+        method: GET
+        user: "root@pam"
+        password: ""  # Testing/WIP Direct password instead of lookup
+        force_basic_auth: yes
+        validate_certs: no
+        return_content: yes
+      register: version_info
+      
+    - name: Display version information
+      debug:
+        msg: "Proxmox version: {{ version_info.json.data.version }}"

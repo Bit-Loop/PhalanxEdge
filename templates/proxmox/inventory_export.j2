@@ -1,0 +1,106 @@
+# filepath: /home/ubuntu/.ansible/templates/proxmox/inventory_export.j2
+# Proxmox Consolidated Inventory
+# Generated on: {{ ansible_date_time.date }} at {{ ansible_date_time.time }}
+---
+all:
+  children:
+    proxmox:
+      children:
+        # Proxmox Nodes
+        all_nodes:
+          hosts:
+            {% for node in groups['all_nodes'] | default([]) %}
+            {{ node }}:
+              ansible_host: {{ hostvars[node]['ansible_host'] | default(node) }}
+              proxmox_status: {{ hostvars[node]['proxmox_status'] | default('unknown') }}
+              proxmox_type: node
+            {% endfor %}
+
+        # Proxmox VMs
+        all_vms:
+          hosts:
+            {% for host in vm_info['proxmox_vms'] | selectattr('type', 'equalto', 'qemu') | list %}
+            {% if host.name %}
+            {{ host.name | regex_replace('[^a-zA-Z0-9_-]', '_') }}:
+              proxmox_vmid: {{ host.vmid }}
+              proxmox_node: {{ inventory_hostname }}
+              proxmox_type: qemu
+              proxmox_status: {{ host.status }}
+              ansible_connection: ssh
+              ansible_user: admin
+              ansible_ssh_private_key_file: "~/.ssh/proxmox_ansible"
+              {% if host.status == 'running' %}
+              # Try to extract IP if available
+              {% for net in host.net | default([]) %}
+              {% if net.ip is defined and net.ip != '' and not net.ip.startswith('127.') %}
+              ansible_host: {{ net.ip }}
+              {% endif %}
+              {% endfor %}
+              {% endif %}
+            {% endif %}
+            {% endfor %}
+
+        # Proxmox Containers
+        all_containers:
+          hosts:
+            {% for host in vm_info['proxmox_vms'] | selectattr('type', 'equalto', 'lxc') | list %}
+            {% if host.name %}
+            {{ host.name | regex_replace('[^a-zA-Z0-9_-]', '_') }}:
+              proxmox_vmid: {{ host.vmid }}
+              proxmox_node: {{ inventory_hostname }}
+              proxmox_type: lxc
+              proxmox_status: {{ host.status }}
+              ansible_connection: ssh
+              ansible_user: admin
+              ansible_ssh_private_key_file: "~/.ssh/proxmox_ansible"
+              {% if host.status == 'running' %}
+              # Try to extract IP if available
+              {% for net in host.net | default([]) %}
+              {% if net.ip is defined and net.ip != '' and not net.ip.startswith('127.') %}
+              ansible_host: {{ net.ip }}
+              {% endif %}
+              {% endfor %}
+              {% endif %}
+            {% endif %}
+            {% endfor %}
+
+    # Functional groups
+    storage_nodes:
+      hosts:
+        {% for host in groups['all_nodes'] | default([]) %}
+        {% if hostvars[host]['storage_node'] | default(false) %}
+        {{ host }}:
+        {% endif %}
+        {% endfor %}
+
+    compute_nodes:
+      hosts:
+        {% for host in groups['all_nodes'] | default([]) %}
+        {% if hostvars[host]['compute_node'] | default(false) %}
+        {{ host }}:
+        {% endif %}
+        {% endfor %}
+
+    # Status-based groups
+    running_vms:
+      hosts:
+        {% for host in vm_info['proxmox_vms'] | selectattr('status', 'equalto', 'running') | list %}
+        {% if host.name %}
+        {{ host.name | regex_replace('[^a-zA-Z0-9_-]', '_') }}:
+        {% endif %}
+        {% endfor %}
+
+    stopped_vms:
+      hosts:
+        {% for host in vm_info['proxmox_vms'] | selectattr('status', 'equalto', 'stopped') | list %}
+        {% if host.name %}
+        {{ host.name | regex_replace('[^a-zA-Z0-9_-]', '_') }}:
+        {% endif %}
+        {% endfor %}
+
+  vars:
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=accept-new'
+    ansible_python_interpreter: /usr/bin/python3
+    proxmox_api_user: "{{ proxmox_api_user | default('root@pam') }}"
+    proxmox_api_password: "{{ proxmox_api_password }}"
+    proxmox_verify_ssl: {{ proxmox_verify_ssl | default(false) }}

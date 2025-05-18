@@ -1,0 +1,226 @@
+---
+# PROXMOX NODE MANAGEMENT
+# This playbook manages Proxmox node setup, network configuration, and storage
+
+- name: Proxmox Node Management
+  hosts: proxmox
+  gather_facts: yes
+  become: yes
+  vars_files:
+    - "{{ playbook_dir }}/../vars/proxmox_secrets.yml"
+
+  pre_tasks:
+    - name: Create audit log
+      blockinfile:
+        path: "{{ real_home }}/.ansible/logs/proxmox_audit_{{ ansible_date_time.date }}.log"
+        create: yes
+        mode: '0640'
+        block: |
+          Proxmox node management initiated at {{ ansible_date_time.iso8601 }}
+          User: {{ lookup('env', 'USER') }}
+          Host: {{ inventory_hostname }}
+          Operation: Node management
+      delegate_to: localhost
+      become: no
+
+  tasks:
+    # BLOCK 1: NODE SETUP
+    - name: Setup Proxmox node
+      block:
+        - name: Update system packages
+          apt:
+            update_cache: yes
+            upgrade: dist
+          when: ansible_os_family == "Debian"
+        
+        - name: Install additional utilities
+          apt:
+            name:
+              - htop
+              - iotop
+              - iftop
+              - vim
+              - ncdu
+              - screen
+              - tmux
+              - curl
+              - wget
+              - rsync
+              - net-tools
+            state: present
+          when: ansible_os_family == "Debian"
+        
+        - name: Configure system hostname
+          hostname:
+            name: "{{ inventory_hostname }}"
+          register: hostname_changed
+        
+        - name: Update /etc/hosts
+          lineinfile:
+            path: /etc/hosts
+            line: "{{ ansible_host }} {{ inventory_hostname }}.{{ domain_suffix | default('local') }} {{ inventory_hostname }}"
+            regexp: "^{{ ansible_host }}.*$"
+            state: present
+        
+        - name: Reload hostname service
+          service:
+            name: systemd-hostnamed
+            state: restarted
+          when: hostname_changed is changed
+      tags: [setup]
+    
+    # BLOCK 2: NETWORK CONFIGURATION
+    - name: Configure network
+      block:
+        - name: Backup network configuration
+          copy:
+            src: /etc/network/interfaces
+            dest: /etc/network/interfaces.bak
+            remote_src: yes
+            mode: '0644'
+          
+        - name: Configure network interfaces
+          template:
+            src: "{{ playbook_dir }}/../templates/proxmox/interfaces.j2"
+            dest: /etc/network/interfaces
+            owner: root
+            group: root
+            mode: '0644'
+            backup: yes
+          vars:
+            interfaces:
+              - name: "{{ proxmox_node_network.interface }}"
+                type: bridge
+                address: "{{ proxmox_node_network.address }}"
+                gateway: "{{ proxmox_node_network.gateway }}"
+                bridge_ports: "{{ proxmox_node_network.ports | default('eth0') }}"
+                bridge_stp: "{{ proxmox_node_network.stp | default('off') }}"
+          register: network_config
+        
+        - name: Apply network configuration
+          shell: ifdown {{ proxmox_node_network.interface }} && ifup {{ proxmox_node_network.interface }}
+          when: network_config is changed
+      when: proxmox_node_network is defined
+      tags: [network]
+    
+    # BLOCK 3: STORAGE CONFIGURATION
+    - name: Configure storage
+      block:
+        - name: Get storage information
+          shell: pvesm status
+          register: storage_info
+          changed_when: false
+        
+        - name: Configure local storage
+          shell: |
+            pvesm add dir local-backup --path /var/lib/vz/backup
+            pvesm set local-backup --content backup
+          when: "'local-backup' not in storage_info.stdout"
+        
+        - name: Check for ZFS support
+          shell: which zpool
+          register: zfs_check
+          changed_when: false
+          failed_when: false
+        
+        - name: Configure ZFS storage
+          block:
+            - name: Check existing ZFS pools
+              shell: zpool list
+              register: zpool_list
+              changed_when: false
+              failed_when: false
+            
+            - name: Create ZFS storage pool
+              shell: zpool create -f {{ item.name }} {{ item.devices }}
+              loop: "{{ zfs_pools | default([]) }}"
+              when: item.name not in zpool_list.stdout
+              
+            - name: Add ZFS storage to Proxmox
+              shell: pvesm add zfspool {{ item.name }} --pool {{ item.name }} --content {{ item.content | default('images,rootdir') }}
+              loop: "{{ zfs_pools | default([]) }}"
+              register: zfs_added
+              failed_when: 
+                - zfs_added.rc != 0 
+                - "'already exists' not in zfs_added.stderr"
+              changed_when: 
+                - zfs_added.rc == 0
+          when: zfs_check.rc == 0 and zfs_pools is defined
+      tags: [storage]
+    
+    # BLOCK 4: CPU AND MEMORY OPTIMIZATION
+    - name: Optimize CPU and memory
+      block:
+        - name: Configure CPU governor
+          shell: |
+            echo "performance" > /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
+          changed_when: true
+          
+        - name: Set swappiness
+          sysctl:
+            name: vm.swappiness
+            value: '10'
+            state: present
+            reload: yes
+            
+        - name: Optimize kernel parameters
+          sysctl:
+            name: "{{ item.key }}"
+            value: "{{ item.value }}"
+            state: present
+            reload: yes
+          loop:
+            - { key: "vm.min_free_kbytes", value: "65536" }
+            - { key: "vm.dirty_ratio", value: "10" }
+            - { key: "vm.dirty_background_ratio", value: "5" }
+      tags: [optimization]
+    
+    # BLOCK 5: FIREWALL CONFIGURATION
+    - name: Configure firewall
+      block:
+        - name: Check current firewall status
+          shell: pve-firewall status
+          register: fw_status
+          changed_when: false
+          failed_when: false
+          
+        - name: Enable Proxmox firewall
+          shell: |
+            echo "enable: 1" > /etc/pve/firewall/cluster.fw
+            echo "policy_in: ACCEPT" >> /etc/pve/firewall/cluster.fw
+            echo "policy_out: ACCEPT" >> /etc/pve/firewall/cluster.fw
+          when: "'inactive' in fw_status.stdout"
+          
+        - name: Allow essential traffic
+          shell: |
+            pve-firewall add rule incoming -action accept -proto tcp -dport {{ item }}
+          loop:
+            - 22    # SSH
+            - 8006  # Proxmox Web UI
+            - 3128  # Proxmox spice proxy
+            - 111   # NFS
+            - 5900:5999  # VNC
+          when: "'inactive' in fw_status.stdout"
+          
+        - name: Restart firewall
+          shell: systemctl restart pve-firewall
+          when: "'inactive' in fw_status.stdout"
+      tags: [firewall]
+    
+    # BLOCK 6: MONITORING SETUP
+    - name: Setup monitoring
+      block:
+        - name: Install monitoring agent
+          apt:
+            name:
+              - prometheus-node-exporter
+              - lm-sensors
+            state: present
+          when: ansible_os_family == "Debian"
+          
+        - name: Enable and start node exporter
+          service:
+            name: prometheus-node-exporter
+            state: started
+            enabled: yes
+      tags: [monitoring]

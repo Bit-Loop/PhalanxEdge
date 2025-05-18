@@ -1,0 +1,11 @@
+- name: deploy integration worker
+  hosts: ci_workers
+  user: root
+  vars:
+    runner_tags: 
+      - linux
+      - automation
+      - docker
+  roles:
+    - role: container-engine
+    - role: ci-worker

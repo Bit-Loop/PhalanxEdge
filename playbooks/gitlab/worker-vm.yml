@@ -1,0 +1,55 @@
+# Example: ansible-playbook playbooks/gitlab/worker-vm.yml -l virtualization.dc1,new_systems -e worker_id=4
+- name: deploy worker instance
+  hosts: virtualization_hosts
+  user: root
+  vars:
+    worker_id: 1
+    base_instance_id: 5400
+    worker_ip: '{{ network.services.ci_worker_subnet.split(".")[:3] | join(".") }}.{{ (network.services.ci_worker_subnet.split(".")[-1] | int) + (worker_id|int) }}'
+
+  tasks:
+    - include_role:
+        name: environment-config
+    
+    - name: provision worker instance
+      include_role:
+        name: virtualization-vm
+      vars:
+        instance:
+          name: "worker{{ worker_id }}"
+          id: "{{ base_instance_id + (worker_id|int) }}"
+          template: /var/lib/vm-templates/linux-minimal.qcow2
+          cpu: 4
+          memory: 8192
+          disk: 64G
+          network:
+            ipv4: "{{ worker_ip }}/{{ network.services.netmask }}"
+            gateway: "{{ network.services.gateway }}"
+            dns_server: "{{ network.dns_servers[0] }}"
+            vlan: "{{ network.services.vlan_tag }}"
+            domain: "{{ network.services.domain }}"
+          access_keys:
+            - 'cert-authority,principals="org_{{ org_code }}" ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
+
+    - name: clean known hosts for new system
+      known_hosts:
+        name: "{{ worker_ip }}"
+        state: absent
+      delegate_to: localhost
+
+    - name: add worker to inventory
+      add_host:
+        hostname: "worker{{ worker_id }}.{{ org_code }}"
+        groups:
+          - new_systems
+          - ci_workers
+        inventory_dir: "{{ inventory_dir }}"
+        ansible_host: "{{ worker_ip }}"
+        org_code: "{{ org_code }}"
+      delegate_to: localhost
+
+- name: initialize worker system
+  import_playbook: ../bootstrap/configure-system.yml
+
+- name: configure worker
+  import_playbook: runner.yml

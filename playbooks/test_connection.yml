@@ -1,0 +1,11 @@
+---
+# Test playbook that explicitly loads vault variables
+- name: Test connection with explicit vault variables
+  hosts: pve-test
+  gather_facts: no
+  vars_files:
+    - "{{ playbook_dir }}/../vars/proxmox_secrets.yml"
+  
+  tasks:
+    - name: Ping test
+      ping:

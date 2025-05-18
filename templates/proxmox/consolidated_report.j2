@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proxmox Status Report - {{ ansible_date_time.date }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        header {
+            background-color: #0078d7;
+            color: white;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        h1, h2, h3 {
+            margin: 0;
+        }
+        .timestamp {
+            font-size: 0.8em;
+            margin-top: 5px;
+        }
+        .node-card {
+            background-color: #f5f5f5;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .metric-row {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 10px 0;
+        }
+        .metric {
+            flex: 1;
+            min-width: 200px;
+            padding: 10px;
+            margin: 5px;
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .metric-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #666;
+        }
+        .metric-value {
+            font-size: 1.2em;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            text-align: left;
+            padding: 8px;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:hover {
+            background-color: #f9f9f9;
+        }
+        .status-running {
+            color: green;
+            font-weight: bold;
+        }
+        .status-stopped {
+            color: orange;
+        }
+        .status-unknown {
+            color: red;
+        }
+        .progress-container {
+            height: 12px;
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+        }
+        .progress-bar {
+            height: 100%;
+            border-radius: 10px;
+            background-color: #0078d7;
+        }
+        .progress-bar.warning {
+            background-color: orange;
+        }
+        .progress-bar.danger {
+            background-color: red;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Proxmox Virtualization Status Report</h1>
+            <div class="timestamp">Generated on {{ ansible_date_time.date }} at {{ ansible_date_time.time }}</div>
+        </header>
+
+        {% for host in ansible_play_hosts_all %}
+        {% set ns = namespace(node_data=hostvars[host]) %}
+
+        <div class="node-card">
+            <h2>{{ host }}</h2>
+
+            <div class="metric-row">
+                <div class="metric">
+                    <div class="metric-title">Uptime</div>
+                    <div class="metric-value">{{ ns.node_data.node_uptime | default('Unknown') }}</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-title">CPU Usage</div>
+                    <div class="metric-value">{{ ns.node_data.node_cpu_used | default('Unknown') }}</div>
+                    {% if ns.node_data.node_cpu_used is defined %}
+                    {% set cpu_percent = (ns.node_data.node_cpu_used | replace('%', '') | float) %}
+                    <div class="progress-container">
+                        <div class="progress-bar {% if cpu_percent > 85 %}danger{% elif cpu_percent > 70 %}warning{% endif %}" 
+                             style="width: {{ cpu_percent }}%"></div>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="metric">
+                    <div class="metric-title">Memory Usage</div>
+                    <div class="metric-value">{{ ns.node_data.node_memory_used | default('Unknown') }}</div>
+                    {% if ns.node_data.node_memory_used is defined %}
+                    {% set mem_percent = (ns.node_data.node_memory_used | replace('%', '') | float) %}
+                    <div class="progress-container">
+                        <div class="progress-bar {% if mem_percent > 90 %}danger{% elif mem_percent > 75 %}warning{% endif %}" 
+                             style="width: {{ mem_percent }}%"></div>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="metric">
+                    <div class="metric-title">Load Average</div>
+                    <div class="metric-value">
+                    {% if ns.node_data.node_load is defined %}
+                        {{ ns.node_data.node_load[0] }} (1m) / {{ ns.node_data.node_load[1] }} (5m) / {{ ns.node_data.node_load[2] }} (15m)
+                    {% else %}
+                        Unknown
+                    {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <h3>Storage Status</h3>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Total</th>
+                    <th>Used</th>
+                    <th>Available</th>
+                    <th>Usage</th>
+                </tr>
+                {% if ns.node_data.storage_info is defined %}
+                {% for storage in ns.node_data.storage_info %}
+                <tr>
+                    <td>{{ storage.name }}</td>
+                    <td>{{ storage.type }}</td>
+                    <td>{{ (storage.total / (1024*1024*1024)) | round(2) }} GB</td>
+                    <td>{{ (storage.used / (1024*1024*1024)) | round(2) }} GB</td>
+                    <td>{{ (storage.avail / (1024*1024*1024)) | round(2) }} GB</td>
+                    <td>
+                        {{ storage.used_percent }}%
+                        <div class="progress-container">
+                            <div class="progress-bar {% if storage.used_percent > 90 %}danger{% elif storage.used_percent > 75 %}warning{% endif %}" 
+                                 style="width: {{ storage.used_percent }}%"></div>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+                {% else %}
+                <tr>
+                    <td colspan="6">No storage information available</td>
+                </tr>
+                {% endif %}
+            </table>
+
+            <h3>Virtual Machines</h3>
+            <table>
+                <tr>
+                    <th>VMID</th>
+                    <th>Name</th>
+                    <th>Status</th>
+                    <th>CPU Cores</th>
+                    <th>Memory</th>
+                    <th>Disk</th>
+                </tr>
+                {% if ns.node_data.vm_info is defined and ns.node_data.vm_info|length > 0 %}
+                {% for vm in ns.node_data.vm_info %}
+                <tr>
+                    <td>{{ vm.vmid }}</td>
+                    <td>{{ vm.name }}</td>
+                    <td class="status-{{ vm.status }}">{{ vm.status }}</td>
+                    <td>{{ vm.cpu }}</td>
+                    <td>{{ (vm.maxmem / (1024*1024*1024)) | round(2) }} GB</td>
+                    <td>{{ (vm.maxdisk / (1024*1024*1024)) | round(2) }} GB</td>
+                </tr>
+                {% endfor %}
+                {% else %}
+                <tr>
+                    <td colspan="6">No virtual machines found</td>
+                </tr>
+                {% endif %}
+            </table>
+
+            <h3>Containers</h3>
+            <table>
+                <tr>
+                    <th>CTID</th>
+                    <th>Name</th>
+                    <th>Status</th>
+                    <th>CPU Cores</th>
+                    <th>Memory</th>
+                    <th>Disk</th>
+                </tr>
+                {% if ns.node_data.lxc_info is defined and ns.node_data.lxc_info|length > 0 %}
+                {% for ct in ns.node_data.lxc_info %}
+                <tr>
+                    <td>{{ ct.vmid }}</td>
+                    <td>{{ ct.name }}</td>
+                    <td class="status-{{ ct.status }}">{{ ct.status }}</td>
+                    <td>{{ ct.cpu }}</td>
+                    <td>{{ (ct.maxmem / (1024*1024*1024)) | round(2) }} GB</td>
+                    <td>{{ (ct.maxdisk / (1024*1024*1024)) | round(2) }} GB</td>
+                </tr>
+                {% endfor %}
+                {% else %}
+                <tr>
+                    <td colspan="6">No containers found</td>
+                </tr>
+                {% endif %}
+            </table>
+        </div>
+        {% endfor %}
+
+        {% if hostvars[ansible_play_hosts_all[0]].cluster_info is defined and hostvars[ansible_play_hosts_all[0]].cluster_info|length > 0 %}
+        <div class="node-card">
+            <h2>Cluster Status</h2>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                    <th>Quorum</th>
+                    <th>ID</th>
+                </tr>
+                {% set cluster_info = hostvars[ansible_play_hosts_all[0]].cluster_info %}
+                {% for item in cluster_info %}
+                <tr>
+                    <td>{{ item.name }}</td>
+                    <td>{{ item.type }}</td>
+                    <td class="status-{% if item.online %}running{% else %}stopped{% endif %}">
+                        {{ "Online" if item.online else "Offline" }}
+                    </td>
+                    <td>{{ "Yes" if item.quorum|default(false) else "No" }}</td>
+                    <td>{{ item.nodeid|default('-') }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

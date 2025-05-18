@@ -1,0 +1,2 @@
+proxmox_version: 6
+debian_version: "{{ ansible_distribution_release }}"

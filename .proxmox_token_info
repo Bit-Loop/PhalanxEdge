@@ -1,0 +1,4 @@
+# Proxmox API token information
+# Created: Sun May 18 16:20:40 UTC 2025
+proxmox_api_token_id: "root@pam!ansible-automation"
+proxmox_api_token_value: "65935f57"

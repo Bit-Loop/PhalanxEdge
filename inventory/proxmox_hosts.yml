@@ -1,0 +1,58 @@
+---
+# PhalanxEdge - Proxmox Inventory
+# This file defines the Proxmox hosts and clusters to be managed
+all:
+  children:
+    proxmox:
+      children:
+        proxmox_clusters:
+          children:
+            cluster1:
+              #hosts:
+               # pve01:
+                  #ansible_host: 192.168.1.
+                  #node_id: 1
+                  #node_role: master
+                  #quorum_vote: yes
+                #pve02:
+                  #ansible_host: 192.168.1.102
+                  #node_id: 2
+                  #node_role: node
+                  #quorum_vote: yes
+                #pve03:
+                  #ansible_host: 192.168.1.103
+                  #node_id: 3
+                  #node_role: node
+                 # quorum_vote: yes
+        standalone_nodes:
+          hosts:
+            pve-test:
+              ansible_host: 192.168.1.47
+              node_role: standalone
+              ansible_user: root
+              ansible_password: "{{ vault_pve_test_password }}"
+              proxmox_api_password: "{{ vault_pve_test_api_password | default(vault_proxmox_api_password) }}"
+        # Functional grouping for targeted operations
+        storage_nodes:
+          hosts:
+            pve01:
+            pve02:
+        compute_nodes:
+          hosts:
+            pve01:
+            pve02:
+            pve03:
+        backup_servers:
+          hosts:
+            pve-test:
+      vars:
+        ansible_user: root  # Default user for Proxmox management
+        proxmox_api_user: "root@pam"
+        proxmox_api_password: "{{ vault_proxmox_api_password }}"  # Use ansible-vault to secure
+        proxmox_api_host: "{{ ansible_host }}"
+        proxmox_api_port: 8006
+        proxmox_verify_ssl: false  # Change to true in production
+        proxmox_node_network:
+          interface: vmbr0
+          address: "{{ ansible_host }}/24"
+          gateway: 192.168.1.1

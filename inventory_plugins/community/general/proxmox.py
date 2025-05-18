@@ -1,0 +1,1 @@
+/home/ubuntu/.ansible/inventory_plugins/proxmox.py

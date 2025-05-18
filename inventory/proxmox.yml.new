@@ -1,0 +1,31 @@
+# filepath: /home/ubuntu/.ansible/inventory/proxmox.yml.new
+plugin: community.general.proxmox
+url: https://192.168.1.47:8006
+user: root@pam
+token_id: ansible-automation
+token_secret: "{{ lookup('file', '~/.ansible/.proxmox_token_value') | trim }}"
+validate_certs: false
+group_prefix: proxmox_
+want_facts: true
+facts_prefix: proxmox_
+want_proxmox_nodes_ansible_host: true
+vm_status_filter:
+  - running
+  - stopped
+
+# Group VMs by their tags
+keyed_groups:
+  - key: proxmox_tags
+    prefix: tag
+  - key: proxmox_status
+    prefix: status
+  - key: proxmox_type
+    separator: ""
+  - key: proxmox_node
+    prefix: node
+
+# Filter out problematic node
+# Disable monty node by filtering post-collection
+compose:
+  ansible_connection: "{{ 'ssh' if proxmox_type == 'qemu' else ('lxc' if proxmox_type == 'lxc' else 'local') }}"
+  ansible_user: "{{ 'root' if proxmox_type == 'node' else 'admin' }}"

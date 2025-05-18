@@ -1,0 +1,44 @@
+---
+- name: Get Proxmox Information Using Vault
+  hosts: pve-test
+  gather_facts: no
+  vars_files:
+    - ../vars/proxmox_secrets.yml
+  
+  tasks:
+    - name: Display host credentials
+      debug:
+        msg: "Using credentials for {{ inventory_hostname }}"
+        verbosity: 1
+      
+    - name: Get version information using vault
+      uri:
+        url: "https://{{ ansible_host }}:8006/api2/json/version"
+        method: GET
+        user: "root@pam"
+        password: "{{ host_credentials[inventory_hostname]['api_password'] }}"
+        force_basic_auth: yes
+        validate_certs: no
+        return_content: yes
+      register: version_info
+      no_log: true  # Don't log the API call (prevents leaking credentials)
+      
+    - name: Display version information
+      debug:
+        msg: "Proxmox version: {{ version_info.json.data.version }}"
+        
+    - name: Get node information using vault
+      uri:
+        url: "https://{{ ansible_host }}:8006/api2/json/nodes"
+        method: GET
+        user: "root@pam"
+        password: "{{ host_credentials[inventory_hostname]['api_password'] }}"
+        force_basic_auth: yes
+        validate_certs: no
+        return_content: yes
+      register: node_info
+      no_log: true  # Don't log the API call (prevents leaking credentials)
+      
+    - name: Display node information
+      debug:
+        msg: "Proxmox nodes: {{ node_info.json.data | map(attribute='node') | list }}"

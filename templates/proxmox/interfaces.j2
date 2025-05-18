@@ -1,0 +1,25 @@
+# This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+
+source /etc/network/interfaces.d/*
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+{% for interface in interfaces %}
+# {{ interface.type | capitalize }} interface {{ interface.name }}
+auto {{ interface.name }}
+iface {{ interface.name }} inet {% if interface.type == 'bridge' %}static{% else %}{{ interface.method | default('static') }}{% endif %}
+{% if interface.address is defined %}    address {{ interface.address }}{% endif %}
+{% if interface.netmask is defined %}    netmask {{ interface.netmask }}{% endif %}
+{% if interface.gateway is defined %}    gateway {{ interface.gateway }}{% endif %}
+{% if interface.type == 'bridge' %}    bridge_ports {{ interface.bridge_ports }}
+    bridge_stp {{ interface.bridge_stp | default('off') }}
+    bridge_fd {{ interface.bridge_fd | default('0') }}{% endif %}
+{% if interface.type == 'bond' %}    bond-slaves {{ interface.bond_slaves }}
+    bond-miimon {{ interface.bond_miimon | default('100') }}
+    bond-mode {{ interface.bond_mode | default('balance-rr') }}{% endif %}
+{% if interface.vlan_raw_device is defined %}    vlan-raw-device {{ interface.vlan_raw_device }}{% endif %}
+
+{% endfor %}

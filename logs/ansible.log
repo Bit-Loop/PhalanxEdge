@@ -1,0 +1,2013 @@
+2025-05-18 15:39:46,790 p=4109166 u=ubuntu n=ansible INFO| [DEPRECATION WARNING]: [defaults]collections_paths option. Reason: does not fit var naming standard, use
+ the singular form collections_path instead Alternatives: none. This feature will be removed in version 
+2.19. Deprecation warnings can be disabled by setting deprecation_warnings=False in ansible.cfg.
+2025-05-18 15:39:47,027 p=4109166 u=ubuntu n=ansible WARNING| [WARNING]: Failed to load inventory plugin, skipping proxmox
+
+2025-05-18 15:39:47,226 p=4109166 u=ubuntu n=ansible INFO|  _________________________________
+< PLAY [Quick connectivity check] >
+ ---------------------------------
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+
+
+2025-05-18 15:39:47,257 p=4109166 u=ubuntu n=ansible INFO|  _____________________________________
+< TASK [Get Proxmox host information] >
+ -------------------------------------
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+
+
+2025-05-18 15:39:49,894 p=4109166 u=ubuntu n=ansible WARNING| [WARNING]: Platform linux on host pve-test is using the discovered Python interpreter at
+/usr/bin/python3.11, but future installation of another Python interpreter could change the meaning of
+that path. See https://docs.ansible.com/ansible-
+core/2.18/reference_appendices/interpreter_discovery.html for more information.
+
+2025-05-18 15:39:49,894 p=4109166 u=ubuntu n=ansible INFO| changed: [pve-test]
+2025-05-18 15:39:49,919 p=4109166 u=ubuntu n=ansible INFO|  _________________________
+< TASK [Display hostname] >
+ -------------------------
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+
+
+2025-05-18 15:39:49,937 p=4109166 u=ubuntu n=ansible INFO| ok: [pve-test] => {
+    "msg": "Successfully connected to zero-cool.lan"
+}
+2025-05-18 15:39:49,961 p=4109166 u=ubuntu n=ansible INFO|  ____________
+< PLAY RECAP >
+ ------------
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+
+
+2025-05-18 15:39:49,962 p=4109166 u=ubuntu n=ansible INFO| pve-test                   : ok=2    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+2025-05-18 15:40:04,228 p=4109391 u=ubuntu n=ansible INFO| [DEPRECATION WARNING]: [defaults]collections_paths option. Reason: does not fit
+ var naming standard, use the singular form collections_path instead 
+Alternatives: none. This feature will be removed in version 2.19. Deprecation 
+warnings can be disabled by setting deprecation_warnings=False in ansible.cfg.
+2025-05-18 15:40:04,430 p=4109391 u=ubuntu n=ansible WARNING| [WARNING]: Failed to load inventory plugin, skipping proxmox
+
+2025-05-18 15:40:04,443 p=4109391 u=ubuntu n=ansible INFO| {
+    "_meta": {
+        "hostvars": {
+            "pve-test": {
+                "ansible_host": "192.168.1.47",
+                "ansible_password": "{{ vault_pve_test_password }}",
+                "ansible_user": "root",
+                "node_role": "standalone",
+                "proxmox_api_host": "{{ ansible_host }}",
+                "proxmox_api_password": "{{ vault_pve_test_api_password | default(vault_proxmox_api_password) }}",
+                "proxmox_api_port": 8006,
+                "proxmox_api_user": "root@pam",
+                "proxmox_node_network": {
+                    "address": "{{ ansible_host }}/24",
+                    "gateway": "192.168.1.1",
+                    "interface": "vmbr0"
+                },
+                "proxmox_verify_ssl": false
+            },
+            "pve01": {
+                "ansible_user": "root",
+                "proxmox_api_host": "{{ ansible_host }}",
+                "proxmox_api_password": "{{ vault_proxmox_api_password }}",
+                "proxmox_api_port": 8006,
+                "proxmox_api_user": "root@pam",
+                "proxmox_node_network": {
+                    "address": "{{ ansible_host }}/24",
+                    "gateway": "192.168.1.1",
+                    "interface": "vmbr0"
+                },
+                "proxmox_verify_ssl": false
+            },
+            "pve02": {
+                "ansible_user": "root",
+                "proxmox_api_host": "{{ ansible_host }}",
+                "proxmox_api_password": "{{ vault_proxmox_api_password }}",
+                "proxmox_api_port": 8006,
+                "proxmox_api_user": "root@pam",
+                "proxmox_node_network": {
+                    "address": "{{ ansible_host }}/24",
+                    "gateway": "192.168.1.1",
+                    "interface": "vmbr0"
+                },
+                "proxmox_verify_ssl": false
+            },
+            "pve03": {
+                "ansible_user": "root",
+                "proxmox_api_host": "{{ ansible_host }}",
+                "proxmox_api_password": "{{ vault_proxmox_api_password }}",
+                "proxmox_api_port": 8006,
+                "proxmox_api_user": "root@pam",
+                "proxmox_node_network": {
+                    "address": "{{ ansible_host }}/24",
+                    "gateway": "192.168.1.1",
+                    "interface": "vmbr0"
+                },
+                "proxmox_verify_ssl": false
+            }
+        }
+    },
+    "all": {
+        "children": [
+            "ungrouped",
+            "proxmox"
+        ]
+    },
+    "backup_servers": {
+        "hosts": [
+            "pve-test"
+        ]
+    },
+    "compute_nodes": {
+        "hosts": [
+            "pve01",
+            "pve02",
+            "pve03"
+        ]
+    },
+    "proxmox": {
+        "children": [
+            "proxmox_clusters",
+            "standalone_nodes",
+            "storage_nodes",
+            "compute_nodes",
+            "backup_servers"
+        ]
+    },
+    "proxmox_clusters": {
+        "children": [
+            "cluster1"
+        ]
+    },
+    "standalone_nodes": {
+        "hosts": [
+            "pve-test"
+        ]
+    },
+    "storage_nodes": {
+        "hosts": [
+            "pve01",
+            "pve02"
+        ]
+    }
+}
+2025-05-18 15:40:28,434 p=4109653 u=ubuntu n=ansible INFO| [DEPRECATION WARNING]: [defaults]collections_paths option. Reason: does not fit
+ var naming standard, use the singular form collections_path instead 
+Alternatives: none. This feature will be removed in version 2.19. Deprecation 
+warnings can be disabled by setting deprecation_warnings=False in ansible.cfg.
+2025-05-18 15:40:28,642 p=4109653 u=ubuntu n=ansible WARNING| [WARNING]: Failed to load inventory plugin, skipping proxmox
+
+2025-05-18 15:40:28,655 p=4109653 u=ubuntu n=ansible INFO| {
+    "_meta": {
+        "hostvars": {
+            "pve-test": {
+                "ansible_host": "192.168.1.47",
+                "ansible_password": "{{ vault_pve_test_password }}",
+                "ansible_user": "root",
+                "node_role": "standalone",
+                "proxmox_api_host": "{{ ansible_host }}",
+                "proxmox_api_password": "{{ vault_pve_test_api_password | default(vault_proxmox_api_password) }}",
+                "proxmox_api_port": 8006,
+                "proxmox_api_user": "root@pam",
+                "proxmox_node_network": {
+                    "address": "{{ ansible_host }}/24",
+                    "gateway": "192.168.1.1",
+                    "interface": "vmbr0"
+                },
+                "proxmox_verify_ssl": false
+            },
+            "pve01": {
+                "ansible_user": "root",
+                "proxmox_api_host": "{{ ansible_host }}",
+                "proxmox_api_password": "{{ vault_proxmox_api_password }}",
+                "proxmox_api_port": 8006,
+                "proxmox_api_user": "root@pam",
+                "proxmox_node_network": {
+                    "address": "{{ ansible_host }}/24",
+                    "gateway": "192.168.1.1",
+                    "interface": "vmbr0"
+                },
+                "proxmox_verify_ssl": false
+            },
+            "pve02": {
+                "ansible_user": "root",
+                "proxmox_api_host": "{{ ansible_host }}",
+                "proxmox_api_password": "{{ vault_proxmox_api_password }}",
+                "proxmox_api_port": 8006,
+                "proxmox_api_user": "root@pam",
+                "proxmox_node_network": {
+                    "address": "{{ ansible_host }}/24",
+                    "gateway": "192.168.1.1",
+                    "interface": "vmbr0"
+                },
+                "proxmox_verify_ssl": false
+            },
+            "pve03": {
+                "ansible_user": "root",
+                "proxmox_api_host": "{{ ansible_host }}",
+                "proxmox_api_password": "{{ vault_proxmox_api_password }}",
+                "proxmox_api_port": 8006,
+                "proxmox_api_user": "root@pam",
+                "proxmox_node_network": {
+                    "address": "{{ ansible_host }}/24",
+                    "gateway": "192.168.1.1",
+                    "interface": "vmbr0"
+                },
+                "proxmox_verify_ssl": false
+            }
+        }
+    },
+    "all": {
+        "children": [
+            "ungrouped",
+            "proxmox"
+        ]
+    },
+    "backup_servers": {
+        "hosts": [
+            "pve-test"
+        ]
+    },
+    "compute_nodes": {
+        "hosts": [
+            "pve01",
+            "pve02",
+            "pve03"
+        ]
+    },
+    "proxmox": {
+        "children": [
+            "proxmox_clusters",
+            "standalone_nodes",
+            "storage_nodes",
+            "compute_nodes",
+            "backup_servers"
+        ]
+    },
+    "proxmox_clusters": {
+        "children": [
+            "cluster1"
+        ]
+    },
+    "standalone_nodes": {
+        "hosts": [
+            "pve-test"
+        ]
+    },
+    "storage_nodes": {
+        "hosts": [
+            "pve01",
+            "pve02"
+        ]
+    }
+}
+2025-05-18 15:43:04,383 p=4111523 u=ubuntu n=ansible WARNING| [WARNING]: Failed to load inventory plugin, skipping proxmox
+
+2025-05-18 15:43:04,390 p=4111523 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/proxmox.yml with auto
+plugin: inventory config '/home/ubuntu/.ansible/inventory/proxmox.yml' specifies unknown
+plugin 'proxmox'
+
+2025-05-18 15:43:04,390 p=4111523 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/proxmox.yml with yaml
+plugin: Plugin configuration YAML file, not YAML inventory
+
+2025-05-18 15:43:04,390 p=4111523 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/proxmox.yml with ini
+plugin: Invalid host pattern 'plugin:' supplied, ending in ':' is not allowed, this
+character is reserved to provide a port.
+
+2025-05-18 15:43:04,390 p=4111523 u=ubuntu n=ansible WARNING| [WARNING]: Unable to parse /home/ubuntu/.ansible/inventory/proxmox.yml as an inventory
+source
+
+2025-05-18 15:43:04,390 p=4111523 u=ubuntu n=ansible WARNING| [WARNING]: No inventory was parsed, only implicit localhost is available
+
+2025-05-18 15:43:04,393 p=4111523 u=ubuntu n=ansible INFO| {
+    "_meta": {
+        "hostvars": {}
+    },
+    "all": {
+        "children": [
+            "ungrouped"
+        ]
+    }
+}
+2025-05-18 15:43:20,405 p=4111731 u=ubuntu n=ansible INFO| Starting galaxy collection install process
+2025-05-18 15:43:20,559 p=4111731 u=ubuntu n=ansible INFO| Nothing to do. All requested collections are already installed. If you want to reinstall them, consider using `--force`.
+2025-05-18 15:46:19,555 p=4112954 u=ubuntu n=ansible WARNING| [WARNING]: Failed to load inventory plugin, skipping proxmox
+
+2025-05-18 15:46:19,562 p=4112954 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/proxmox.yml with
+auto plugin: inventory config '/home/ubuntu/.ansible/inventory/proxmox.yml'
+specifies unknown plugin 'proxmox'
+
+2025-05-18 15:46:19,562 p=4112954 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/proxmox.yml with
+yaml plugin: Plugin configuration YAML file, not YAML inventory
+
+2025-05-18 15:46:19,562 p=4112954 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/proxmox.yml with
+ini plugin: Invalid host pattern 'plugin:' supplied, ending in ':' is not
+allowed, this character is reserved to provide a port.
+
+2025-05-18 15:46:19,562 p=4112954 u=ubuntu n=ansible WARNING| [WARNING]: Unable to parse /home/ubuntu/.ansible/inventory/proxmox.yml as an
+inventory source
+
+2025-05-18 15:46:19,562 p=4112954 u=ubuntu n=ansible WARNING| [WARNING]: No inventory was parsed, only implicit localhost is available
+
+2025-05-18 15:46:19,565 p=4112954 u=ubuntu n=ansible INFO| {
+    "_meta": {
+        "hostvars": {}
+    },
+    "all": {
+        "children": [
+            "ungrouped"
+        ]
+    }
+}
+2025-05-18 15:48:20,565 p=4114000 u=ubuntu n=ansible WARNING| [WARNING]: Failed to load inventory plugin, skipping proxmox
+
+2025-05-18 15:48:20,645 p=4114000 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/proxmox.yml with
+auto plugin: 'proxmox_api_password' is undefined
+
+2025-05-18 15:48:20,645 p=4114000 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/proxmox.yml with
+yaml plugin: Plugin configuration YAML file, not YAML inventory
+
+2025-05-18 15:48:20,645 p=4114000 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/proxmox.yml with
+ini plugin: Invalid host pattern 'plugin:' supplied, ending in ':' is not
+allowed, this character is reserved to provide a port.
+
+2025-05-18 15:48:20,645 p=4114000 u=ubuntu n=ansible WARNING| [WARNING]: Unable to parse /home/ubuntu/.ansible/inventory/proxmox.yml as an
+inventory source
+
+2025-05-18 15:48:20,645 p=4114000 u=ubuntu n=ansible WARNING| [WARNING]: No inventory was parsed, only implicit localhost is available
+
+2025-05-18 15:48:20,647 p=4114000 u=ubuntu n=ansible INFO| {
+    "_meta": {
+        "hostvars": {}
+    },
+    "all": {
+        "children": [
+            "ungrouped"
+        ]
+    }
+}
+2025-05-18 15:48:24,460 p=4114141 u=ubuntu n=ansible WARNING| [WARNING]: Failed to load inventory plugin, skipping proxmox
+
+2025-05-18 15:48:24,544 p=4114141 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/proxmox.yml with
+auto plugin: 'proxmox_api_password' is undefined
+
+2025-05-18 15:48:24,544 p=4114141 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/proxmox.yml with
+yaml plugin: Plugin configuration YAML file, not YAML inventory
+
+2025-05-18 15:48:24,544 p=4114141 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/proxmox.yml with
+ini plugin: Invalid host pattern 'plugin:' supplied, ending in ':' is not
+allowed, this character is reserved to provide a port.
+
+2025-05-18 15:48:24,544 p=4114141 u=ubuntu n=ansible WARNING| [WARNING]: Unable to parse /home/ubuntu/.ansible/inventory/proxmox.yml as an
+inventory source
+
+2025-05-18 15:48:24,544 p=4114141 u=ubuntu n=ansible WARNING| [WARNING]: No inventory was parsed, only implicit localhost is available
+
+2025-05-18 15:48:24,547 p=4114141 u=ubuntu n=ansible INFO| {
+    "_meta": {
+        "hostvars": {}
+    },
+    "all": {
+        "children": [
+            "ungrouped"
+        ]
+    }
+}
+2025-05-18 15:49:12,305 p=4114496 u=ubuntu n=ansible WARNING| [WARNING]: Failed to load inventory plugin, skipping proxmox
+
+2025-05-18 15:49:12,381 p=4114496 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/proxmox_test.yml
+with auto plugin: inventory source
+'/home/ubuntu/.ansible/inventory/proxmox_test.yml' could not be verified by
+inventory plugin 'community.general.proxmox'
+
+2025-05-18 15:49:12,382 p=4114496 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/proxmox_test.yml
+with yaml plugin: Plugin configuration YAML file, not YAML inventory
+
+2025-05-18 15:49:12,382 p=4114496 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/proxmox_test.yml
+with ini plugin: Invalid host pattern 'plugin:' supplied, ending in ':' is not
+allowed, this character is reserved to provide a port.
+
+2025-05-18 15:49:12,382 p=4114496 u=ubuntu n=ansible WARNING| [WARNING]: Unable to parse /home/ubuntu/.ansible/inventory/proxmox_test.yml as
+an inventory source
+
+2025-05-18 15:49:12,382 p=4114496 u=ubuntu n=ansible WARNING| [WARNING]: No inventory was parsed, only implicit localhost is available
+
+2025-05-18 15:49:12,385 p=4114496 u=ubuntu n=ansible INFO| {
+    "_meta": {
+        "hostvars": {}
+    },
+    "all": {
+        "children": [
+            "ungrouped"
+        ]
+    }
+}
+2025-05-18 15:49:27,962 p=4114703 u=ubuntu n=ansible INFO| # /usr/lib/python3/dist-packages/ansible_collections
+Collection                               Version
+---------------------------------------- -------
+
+2025-05-18 15:49:27,963 p=4114703 u=ubuntu n=ansible INFO| amazon.aws                               9.4.0  
+2025-05-18 15:49:27,963 p=4114703 u=ubuntu n=ansible INFO| ansible.netcommon                        7.2.0  
+2025-05-18 15:49:27,963 p=4114703 u=ubuntu n=ansible INFO| ansible.posix                            1.6.2  
+2025-05-18 15:49:27,963 p=4114703 u=ubuntu n=ansible INFO| ansible.utils                            5.1.2  
+2025-05-18 15:49:27,963 p=4114703 u=ubuntu n=ansible INFO| ansible.windows                          2.8.0  
+2025-05-18 15:49:27,963 p=4114703 u=ubuntu n=ansible INFO| arista.eos                               10.1.1 
+2025-05-18 15:49:27,963 p=4114703 u=ubuntu n=ansible INFO| awx.awx                                  24.6.1 
+2025-05-18 15:49:27,963 p=4114703 u=ubuntu n=ansible INFO| azure.azcollection                       3.3.1  
+2025-05-18 15:49:27,963 p=4114703 u=ubuntu n=ansible INFO| check_point.mgmt                         6.4.0  
+2025-05-18 15:49:27,963 p=4114703 u=ubuntu n=ansible INFO| chocolatey.chocolatey                    1.5.3  
+2025-05-18 15:49:27,963 p=4114703 u=ubuntu n=ansible INFO| cisco.aci                                2.11.0 
+2025-05-18 15:49:27,963 p=4114703 u=ubuntu n=ansible INFO| cisco.asa                                6.1.0  
+2025-05-18 15:49:27,963 p=4114703 u=ubuntu n=ansible INFO| cisco.dnac                               6.31.3 
+2025-05-18 15:49:27,963 p=4114703 u=ubuntu n=ansible INFO| cisco.intersight                         2.0.20 
+2025-05-18 15:49:27,963 p=4114703 u=ubuntu n=ansible INFO| cisco.ios                                9.2.0  
+2025-05-18 15:49:27,963 p=4114703 u=ubuntu n=ansible INFO| cisco.iosxr                              10.3.1 
+2025-05-18 15:49:27,963 p=4114703 u=ubuntu n=ansible INFO| cisco.ise                                2.10.0 
+2025-05-18 15:49:27,963 p=4114703 u=ubuntu n=ansible INFO| cisco.meraki                             2.20.10
+2025-05-18 15:49:27,963 p=4114703 u=ubuntu n=ansible INFO| cisco.mso                                2.10.0 
+2025-05-18 15:49:27,963 p=4114703 u=ubuntu n=ansible INFO| cisco.nxos                               9.4.0  
+2025-05-18 15:49:27,964 p=4114703 u=ubuntu n=ansible INFO| cisco.ucs                                1.16.0 
+2025-05-18 15:49:27,964 p=4114703 u=ubuntu n=ansible INFO| cloud.common                             4.0.0  
+2025-05-18 15:49:27,964 p=4114703 u=ubuntu n=ansible INFO| cloudscale_ch.cloud                      2.4.1  
+2025-05-18 15:49:27,964 p=4114703 u=ubuntu n=ansible INFO| community.aws                            9.2.0  
+2025-05-18 15:49:27,964 p=4114703 u=ubuntu n=ansible INFO| community.ciscosmb                       1.0.10 
+2025-05-18 15:49:27,964 p=4114703 u=ubuntu n=ansible INFO| community.crypto                         2.26.0 
+2025-05-18 15:49:27,964 p=4114703 u=ubuntu n=ansible INFO| community.digitalocean                   1.27.0 
+2025-05-18 15:49:27,964 p=4114703 u=ubuntu n=ansible INFO| community.dns                            3.2.3  
+2025-05-18 15:49:27,964 p=4114703 u=ubuntu n=ansible INFO| community.docker                         4.5.2  
+2025-05-18 15:49:27,964 p=4114703 u=ubuntu n=ansible INFO| community.general                        10.6.0 
+2025-05-18 15:49:27,964 p=4114703 u=ubuntu n=ansible INFO| community.grafana                        2.1.0  
+2025-05-18 15:49:27,964 p=4114703 u=ubuntu n=ansible INFO| community.hashi_vault                    6.2.0  
+2025-05-18 15:49:27,964 p=4114703 u=ubuntu n=ansible INFO| community.hrobot                         2.2.0  
+2025-05-18 15:49:27,964 p=4114703 u=ubuntu n=ansible INFO| community.library_inventory_filtering_v1 1.1.1  
+2025-05-18 15:49:27,964 p=4114703 u=ubuntu n=ansible INFO| community.libvirt                        1.3.1  
+2025-05-18 15:49:27,964 p=4114703 u=ubuntu n=ansible INFO| community.mongodb                        1.7.9  
+2025-05-18 15:49:27,964 p=4114703 u=ubuntu n=ansible INFO| community.mysql                          3.13.0 
+2025-05-18 15:49:27,964 p=4114703 u=ubuntu n=ansible INFO| community.network                        5.1.0  
+2025-05-18 15:49:27,964 p=4114703 u=ubuntu n=ansible INFO| community.okd                            4.0.1  
+2025-05-18 15:49:27,964 p=4114703 u=ubuntu n=ansible INFO| community.postgresql                     3.14.0 
+2025-05-18 15:49:27,964 p=4114703 u=ubuntu n=ansible INFO| community.proxysql                       1.6.0  
+2025-05-18 15:49:27,964 p=4114703 u=ubuntu n=ansible INFO| community.rabbitmq                       1.4.0  
+2025-05-18 15:49:27,964 p=4114703 u=ubuntu n=ansible INFO| community.routeros                       3.6.0  
+2025-05-18 15:49:27,964 p=4114703 u=ubuntu n=ansible INFO| community.sap_libs                       1.4.2  
+2025-05-18 15:49:27,964 p=4114703 u=ubuntu n=ansible INFO| community.sops                           2.0.5  
+2025-05-18 15:49:27,964 p=4114703 u=ubuntu n=ansible INFO| community.vmware                         5.6.0  
+2025-05-18 15:49:27,964 p=4114703 u=ubuntu n=ansible INFO| community.windows                        2.4.0  
+2025-05-18 15:49:27,965 p=4114703 u=ubuntu n=ansible INFO| community.zabbix                         3.3.0  
+2025-05-18 15:49:27,965 p=4114703 u=ubuntu n=ansible INFO| containers.podman                        1.16.3 
+2025-05-18 15:49:27,965 p=4114703 u=ubuntu n=ansible INFO| cyberark.conjur                          1.3.3  
+2025-05-18 15:49:27,965 p=4114703 u=ubuntu n=ansible INFO| cyberark.pas                             1.0.30 
+2025-05-18 15:49:27,965 p=4114703 u=ubuntu n=ansible INFO| dellemc.enterprise_sonic                 2.5.1  
+2025-05-18 15:49:27,965 p=4114703 u=ubuntu n=ansible INFO| dellemc.openmanage                       9.11.0 
+2025-05-18 15:49:27,965 p=4114703 u=ubuntu n=ansible INFO| dellemc.powerflex                        2.6.0  
+2025-05-18 15:49:27,965 p=4114703 u=ubuntu n=ansible INFO| dellemc.unity                            2.0.0  
+2025-05-18 15:49:27,965 p=4114703 u=ubuntu n=ansible INFO| f5networks.f5_modules                    1.35.0 
+2025-05-18 15:49:27,965 p=4114703 u=ubuntu n=ansible INFO| fortinet.fortimanager                    2.9.1  
+2025-05-18 15:49:27,965 p=4114703 u=ubuntu n=ansible INFO| fortinet.fortios                         2.4.0  
+2025-05-18 15:49:27,965 p=4114703 u=ubuntu n=ansible INFO| google.cloud                             1.5.1  
+2025-05-18 15:49:27,965 p=4114703 u=ubuntu n=ansible INFO| grafana.grafana                          5.7.0  
+2025-05-18 15:49:27,965 p=4114703 u=ubuntu n=ansible INFO| hetzner.hcloud                           4.3.0  
+2025-05-18 15:49:27,965 p=4114703 u=ubuntu n=ansible INFO| hitachivantara.vspone_block              3.3.0  
+2025-05-18 15:49:27,965 p=4114703 u=ubuntu n=ansible INFO| ibm.qradar                               4.0.0  
+2025-05-18 15:49:27,965 p=4114703 u=ubuntu n=ansible INFO| ibm.spectrum_virtualize                  2.0.0  
+2025-05-18 15:49:27,965 p=4114703 u=ubuntu n=ansible INFO| ibm.storage_virtualize                   2.7.3  
+2025-05-18 15:49:27,965 p=4114703 u=ubuntu n=ansible INFO| ieisystem.inmanage                       3.0.0  
+2025-05-18 15:49:27,965 p=4114703 u=ubuntu n=ansible INFO| infinidat.infinibox                      1.4.5  
+2025-05-18 15:49:27,965 p=4114703 u=ubuntu n=ansible INFO| infoblox.nios_modules                    1.8.0  
+2025-05-18 15:49:27,965 p=4114703 u=ubuntu n=ansible INFO| inspur.ispim                             2.2.3  
+2025-05-18 15:49:27,965 p=4114703 u=ubuntu n=ansible INFO| junipernetworks.junos                    9.1.0  
+2025-05-18 15:49:27,965 p=4114703 u=ubuntu n=ansible INFO| kaytus.ksmanage                          2.0.0  
+2025-05-18 15:49:27,965 p=4114703 u=ubuntu n=ansible INFO| kubernetes.core                          5.2.0  
+2025-05-18 15:49:27,965 p=4114703 u=ubuntu n=ansible INFO| kubevirt.core                            2.1.0  
+2025-05-18 15:49:27,965 p=4114703 u=ubuntu n=ansible INFO| lowlydba.sqlserver                       2.6.0  
+2025-05-18 15:49:27,966 p=4114703 u=ubuntu n=ansible INFO| microsoft.ad                             1.8.1  
+2025-05-18 15:49:27,966 p=4114703 u=ubuntu n=ansible INFO| microsoft.iis                            1.0.2  
+2025-05-18 15:49:27,966 p=4114703 u=ubuntu n=ansible INFO| netapp.cloudmanager                      21.24.0
+2025-05-18 15:49:27,966 p=4114703 u=ubuntu n=ansible INFO| netapp.ontap                             22.14.0
+2025-05-18 15:49:27,966 p=4114703 u=ubuntu n=ansible INFO| netapp.storagegrid                       21.14.0
+2025-05-18 15:49:27,966 p=4114703 u=ubuntu n=ansible INFO| netapp_eseries.santricity                1.4.1  
+2025-05-18 15:49:27,966 p=4114703 u=ubuntu n=ansible INFO| netbox.netbox                            3.21.0 
+2025-05-18 15:49:27,966 p=4114703 u=ubuntu n=ansible INFO| ngine_io.cloudstack                      2.5.0  
+2025-05-18 15:49:27,966 p=4114703 u=ubuntu n=ansible INFO| openstack.cloud                          2.4.1  
+2025-05-18 15:49:27,966 p=4114703 u=ubuntu n=ansible INFO| ovirt.ovirt                              3.2.0  
+2025-05-18 15:49:27,966 p=4114703 u=ubuntu n=ansible INFO| purestorage.flasharray                   1.34.1 
+2025-05-18 15:49:27,966 p=4114703 u=ubuntu n=ansible INFO| purestorage.flashblade                   1.19.2 
+2025-05-18 15:49:27,966 p=4114703 u=ubuntu n=ansible INFO| sensu.sensu_go                           1.14.0 
+2025-05-18 15:49:27,966 p=4114703 u=ubuntu n=ansible INFO| splunk.es                                4.0.0  
+2025-05-18 15:49:27,966 p=4114703 u=ubuntu n=ansible INFO| telekom_mms.icinga_director              2.2.2  
+2025-05-18 15:49:27,966 p=4114703 u=ubuntu n=ansible INFO| theforeman.foreman                       4.2.0  
+2025-05-18 15:49:27,966 p=4114703 u=ubuntu n=ansible INFO| vmware.vmware                            1.11.0 
+2025-05-18 15:49:27,966 p=4114703 u=ubuntu n=ansible INFO| vmware.vmware_rest                       4.7.0  
+2025-05-18 15:49:27,966 p=4114703 u=ubuntu n=ansible INFO| vultr.cloud                              1.13.0 
+2025-05-18 15:49:27,966 p=4114703 u=ubuntu n=ansible INFO| vyos.vyos                                5.0.0  
+2025-05-18 15:49:27,966 p=4114703 u=ubuntu n=ansible INFO| wti.remote                               1.0.10 
+2025-05-18 15:56:36,219 p=4117593 u=ubuntu n=ansible WARNING| [WARNING]: Platform linux on host pve-test is using the discovered Python
+interpreter at /usr/bin/python3.11, but future installation of another Python
+interpreter could change the meaning of that path. See
+https://docs.ansible.com/ansible-
+core/2.18/reference_appendices/interpreter_discovery.html for more information.
+
+2025-05-18 15:56:36,220 p=4117593 u=ubuntu n=ansible INFO| pve-test | SUCCESS => {
+    "ansible_facts": {
+        "discovered_interpreter_python": "/usr/bin/python3.11"
+    },
+    "changed": false,
+    "ping": "pong"
+}
+2025-05-18 15:57:00,493 p=4117962 u=ubuntu n=ansible ERROR| ERROR! Decryption failed (no vault secrets were found that could decrypt) on /home/ubuntu/.ansible/vars/proxmox_secrets.yml
+2025-05-18 15:57:42,020 p=4118305 u=ubuntu n=ansible INFO|  ____________________________________
+< PLAY [Set up SSH keys for Proxmox] >
+ ------------------------------------
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+
+
+2025-05-18 15:57:42,051 p=4118305 u=ubuntu n=ansible INFO|  ________________________
+< TASK [Gathering Facts] >
+ ------------------------
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+
+
+2025-05-18 15:57:46,837 p=4118305 u=ubuntu n=ansible WARNING| [WARNING]: Platform linux on host pve-test is using the discovered Python
+interpreter at /usr/bin/python3.11, but future installation of another Python
+interpreter could change the meaning of that path. See
+https://docs.ansible.com/ansible-
+core/2.18/reference_appendices/interpreter_discovery.html for more information.
+
+2025-05-18 15:57:46,837 p=4118305 u=ubuntu n=ansible INFO| ok: [pve-test]
+2025-05-18 15:57:46,871 p=4118305 u=ubuntu n=ansible INFO|  __________________________________________________
+< TASK [Create .ssh directory if it doesn't exist] >
+ --------------------------------------------------
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+
+
+2025-05-18 15:57:47,178 p=4118305 u=ubuntu n=ansible INFO| ok: [pve-test -> localhost]
+2025-05-18 15:57:47,214 p=4118305 u=ubuntu n=ansible INFO|  _____________________________________________
+< TASK [Generate SSH key if it doesn't exist] >
+ ---------------------------------------------
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+
+
+2025-05-18 15:57:47,529 p=4118305 u=ubuntu n=ansible INFO| ok: [pve-test -> localhost]
+2025-05-18 15:57:47,565 p=4118305 u=ubuntu n=ansible INFO|  _________________________________
+< TASK [Display host information] >
+ ---------------------------------
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+
+
+2025-05-18 15:57:47,581 p=4118305 u=ubuntu n=ansible INFO| ok: [pve-test] => {
+    "msg": "Connected to pve-test (192.168.1.47)"
+}
+2025-05-18 15:57:47,616 p=4118305 u=ubuntu n=ansible INFO|  ________________________________________
+< TASK [Copy SSH key to authorized keys] >
+ ----------------------------------------
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+
+
+2025-05-18 15:57:49,111 p=4118305 u=ubuntu n=ansible INFO| changed: [pve-test]
+2025-05-18 15:57:49,148 p=4118305 u=ubuntu n=ansible INFO|  ______________________________________
+< TASK [Test SSH key-based connection] >
+ --------------------------------------
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+
+
+2025-05-18 15:57:50,370 p=4118305 u=ubuntu n=ansible INFO| ok: [pve-test]
+2025-05-18 15:57:50,394 p=4118305 u=ubuntu n=ansible INFO|  ____________
+< PLAY RECAP >
+ ------------
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+
+
+2025-05-18 15:57:50,394 p=4118305 u=ubuntu n=ansible INFO| pve-test                   : ok=6    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+2025-05-18 15:58:29,379 p=4118820 u=ubuntu n=ansible WARNING| [WARNING]: Platform linux on host pve-test is using the discovered Python
+interpreter at /usr/bin/python3.11, but future installation of another Python
+interpreter could change the meaning of that path. See
+https://docs.ansible.com/ansible-
+core/2.18/reference_appendices/interpreter_discovery.html for more information.
+
+2025-05-18 15:58:29,380 p=4118820 u=ubuntu n=ansible INFO| pve-test | SUCCESS => {
+    "ansible_facts": {
+        "discovered_interpreter_python": "/usr/bin/python3.11"
+    },
+    "changed": false,
+    "ping": "pong"
+}
+2025-05-18 15:59:57,167 p=4119605 u=ubuntu n=ansible INFO|  ________________________________
+< PLAY [Get Proxmox information] >
+ --------------------------------
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+
+
+2025-05-18 15:59:57,196 p=4119605 u=ubuntu n=ansible INFO|  ________________________________
+< TASK [Get version information] >
+ --------------------------------
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+
+
+2025-05-18 16:00:02,888 p=4119605 u=ubuntu n=ansible WARNING| [WARNING]: Platform linux on host pve-test is using the discovered Python
+interpreter at /usr/bin/python3.11, but future installation of another Python
+interpreter could change the meaning of that path. See
+https://docs.ansible.com/ansible-
+core/2.18/reference_appendices/interpreter_discovery.html for more information.
+
+2025-05-18 16:00:02,888 p=4119605 u=ubuntu n=ansible INFO| fatal: [pve-test]: FAILED! => {"ansible_facts": {"discovered_interpreter_python": "/usr/bin/python3.11"}, "cache_control": "max-age=0", "changed": false, "connection": "close", "content": "", "date": "Sun, 18 May 2025 15:59:59 GMT", "elapsed": 3, "expires": "Sun, 18 May 2025 15:59:59 GMT", "msg": "Status code was 401 and not [200]: HTTP Error 401: No ticket", "pragma": "no-cache", "redirected": false, "server": "pve-api-daemon/3.0", "status": 401, "url": "https://192.168.1.47:8006/api2/json/version"}
+2025-05-18 16:00:02,913 p=4119605 u=ubuntu n=ansible INFO|  ____________
+< PLAY RECAP >
+ ------------
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+
+
+2025-05-18 16:00:02,913 p=4119605 u=ubuntu n=ansible INFO| pve-test                   : ok=0    changed=0    unreachable=0    failed=1    skipped=0    rescued=0    ignored=0   
+2025-05-18 16:03:52,513 p=4121131 u=ubuntu n=ansible WARNING| [WARNING]: Platform linux on host pve-test is using the discovered Python
+interpreter at /usr/bin/python3.11, but future installation of another Python
+interpreter could change the meaning of that path. See
+https://docs.ansible.com/ansible-
+core/2.18/reference_appendices/interpreter_discovery.html for more information.
+
+2025-05-18 16:03:52,513 p=4121131 u=ubuntu n=ansible INFO| pve-test | SUCCESS => {
+    "ansible_facts": {
+        "discovered_interpreter_python": "/usr/bin/python3.11"
+    },
+    "changed": false,
+    "ping": "pong"
+}
+2025-05-18 16:04:01,868 p=4121357 u=ubuntu n=ansible INFO|  ________________________________
+< PLAY [Get Proxmox information] >
+ --------------------------------
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+
+
+2025-05-18 16:04:01,899 p=4121357 u=ubuntu n=ansible INFO|  ________________________________
+< TASK [Get version information] >
+ --------------------------------
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+
+
+2025-05-18 16:04:06,872 p=4121357 u=ubuntu n=ansible WARNING| [WARNING]: Platform linux on host pve-test is using the discovered Python
+interpreter at /usr/bin/python3.11, but future installation of another Python
+interpreter could change the meaning of that path. See
+https://docs.ansible.com/ansible-
+core/2.18/reference_appendices/interpreter_discovery.html for more information.
+
+2025-05-18 16:04:06,873 p=4121357 u=ubuntu n=ansible INFO| fatal: [pve-test]: FAILED! => {"ansible_facts": {"discovered_interpreter_python": "/usr/bin/python3.11"}, "cache_control": "max-age=0", "changed": false, "connection": "close", "content": "", "date": "Sun, 18 May 2025 16:04:03 GMT", "elapsed": 3, "expires": "Sun, 18 May 2025 16:04:03 GMT", "msg": "Status code was 401 and not [200]: HTTP Error 401: No ticket", "pragma": "no-cache", "redirected": false, "server": "pve-api-daemon/3.0", "status": 401, "url": "https://192.168.1.47:8006/api2/json/version"}
+2025-05-18 16:04:06,897 p=4121357 u=ubuntu n=ansible INFO|  ____________
+< PLAY RECAP >
+ ------------
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+
+
+2025-05-18 16:04:06,897 p=4121357 u=ubuntu n=ansible INFO| pve-test                   : ok=0    changed=0    unreachable=0    failed=1    skipped=0    rescued=0    ignored=0   
+2025-05-18 16:10:33,495 p=4123783 u=ubuntu n=ansible ERROR| ERROR! The vault-ids default,default are available to encrypt. Specify the vault-id to encrypt with --encrypt-vault-id
+2025-05-18 16:11:03,301 p=4124061 u=ubuntu n=ansible ERROR| ERROR! The vault-ids default,default are available to encrypt. Specify the vault-id to encrypt with --encrypt-vault-id
+2025-05-18 16:11:25,370 p=4124292 u=ubuntu n=ansible ERROR| ERROR! The vault-ids default,default are available to encrypt. Specify the vault-id to encrypt with --encrypt-vault-id
+2025-05-18 16:11:34,994 p=4124497 u=ubuntu n=ansible ERROR| ERROR! input is not vault encrypted data. /home/ubuntu/.ansible/vars/proxmox_secrets.yml is not a vault encrypted file for /home/ubuntu/.ansible/vars/proxmox_secrets.yml
+2025-05-18 16:11:53,940 p=4125339 u=ubuntu n=ansible ERROR| ERROR! The vault-ids default,default are available to encrypt. Specify the vault-id to encrypt with --encrypt-vault-id
+2025-05-18 16:12:25,121 p=4126303 u=ubuntu n=ansible ERROR| ERROR! The vault-ids default,default are available to encrypt. Specify the vault-id to encrypt with --encrypt-vault-id
+2025-05-18 16:12:25,457 p=4126322 u=ubuntu n=ansible ERROR| ERROR! The vault-ids default,default are available to encrypt. Specify the vault-id to encrypt with --encrypt-vault-id
+2025-05-18 16:16:02,569 p=4127754 u=ubuntu n=ansible INFO|  _____________________________________________
+< PLAY [Test Proxmox API with explicit HTTPS] >
+ ---------------------------------------------
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+
+
+2025-05-18 16:16:02,598 p=4127754 u=ubuntu n=ansible INFO|  ________________________
+< TASK [Gathering Facts] >
+ ------------------------
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+
+
+2025-05-18 16:16:07,191 p=4127754 u=ubuntu n=ansible WARNING| [WARNING]: Platform linux on host pve-test is using the discovered Python interpreter at /usr/bin/python3.11, but
+future installation of another Python interpreter could change the meaning of that path. See
+https://docs.ansible.com/ansible-core/2.18/reference_appendices/interpreter_discovery.html for more information.
+
+2025-05-18 16:16:07,191 p=4127754 u=ubuntu n=ansible INFO| ok: [pve-test]
+2025-05-18 16:16:07,226 p=4127754 u=ubuntu n=ansible INFO|  ________________________________
+< TASK [Show connection details] >
+ --------------------------------
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+
+
+2025-05-18 16:16:07,242 p=4127754 u=ubuntu n=ansible INFO| ok: [pve-test] => {
+    "msg": [
+        "Host: 192.168.1.47",
+        "API URL: https://192.168.1.47:8006",
+        "API User: root@pam"
+    ]
+}
+2025-05-18 16:16:07,278 p=4127754 u=ubuntu n=ansible INFO|  ________________________________
+< TASK [Get Proxmox API version] >
+ --------------------------------
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+
+
+2025-05-18 16:16:13,865 p=4127754 u=ubuntu n=ansible INFO| fatal: [pve-test]: FAILED! => {"cache_control": "max-age=0", "changed": false, "connection": "close", "content": "", "date": "Sun, 18 May 2025 16:16:10 GMT", "elapsed": 3, "expires": "Sun, 18 May 2025 16:16:10 GMT", "msg": "Status code was 401 and not [200]: HTTP Error 401: No ticket", "pragma": "no-cache", "redirected": false, "server": "pve-api-daemon/3.0", "status": 401, "url": "https://192.168.1.47:8006/api2/json/version"}
+2025-05-18 16:16:13,889 p=4127754 u=ubuntu n=ansible INFO|  ____________
+< PLAY RECAP >
+ ------------
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+
+
+2025-05-18 16:16:13,889 p=4127754 u=ubuntu n=ansible INFO| pve-test                   : ok=2    changed=0    unreachable=0    failed=1    skipped=0    rescued=0    ignored=0   
+2025-05-18 16:22:59,266 p=4130444 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/proxmox-
+secure.yml with auto plugin: inventory source
+'/home/ubuntu/.ansible/inventory/proxmox-secure.yml' could not be verified by
+inventory plugin 'community.general.proxmox'
+
+2025-05-18 16:22:59,266 p=4130444 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/proxmox-
+secure.yml with yaml plugin: Plugin configuration YAML file, not YAML inventory
+
+2025-05-18 16:22:59,266 p=4130444 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/proxmox-
+secure.yml with ini plugin: Invalid host pattern 'plugin:' supplied, ending in
+':' is not allowed, this character is reserved to provide a port.
+
+2025-05-18 16:22:59,266 p=4130444 u=ubuntu n=ansible WARNING| [WARNING]: Unable to parse /home/ubuntu/.ansible/inventory/proxmox-secure.yml
+as an inventory source
+
+2025-05-18 16:22:59,283 p=4130444 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/proxmox.yml with
+ansible_collections.community.general.plugins.inventory.proxmox plugin:
+'vault_proxmox_api_password' is undefined
+
+2025-05-18 16:22:59,283 p=4130444 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/proxmox.yml with
+auto plugin: 'vault_proxmox_api_password' is undefined
+
+2025-05-18 16:22:59,283 p=4130444 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/proxmox.yml with
+yaml plugin: Plugin configuration YAML file, not YAML inventory
+
+2025-05-18 16:22:59,283 p=4130444 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/proxmox.yml with
+ini plugin: Invalid host pattern 'plugin:' supplied, ending in ':' is not
+allowed, this character is reserved to provide a port.
+
+2025-05-18 16:22:59,284 p=4130444 u=ubuntu n=ansible WARNING| [WARNING]: Unable to parse /home/ubuntu/.ansible/inventory/proxmox.yml as an
+inventory source
+
+2025-05-18 16:22:59,291 p=4130444 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/proxmox_test.yml
+with auto plugin: inventory source
+'/home/ubuntu/.ansible/inventory/proxmox_test.yml' could not be verified by
+inventory plugin 'community.general.proxmox'
+
+2025-05-18 16:22:59,291 p=4130444 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/proxmox_test.yml
+with yaml plugin: Plugin configuration YAML file, not YAML inventory
+
+2025-05-18 16:22:59,291 p=4130444 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/proxmox_test.yml
+with ini plugin: Invalid host pattern 'plugin:' supplied, ending in ':' is not
+allowed, this character is reserved to provide a port.
+
+2025-05-18 16:22:59,291 p=4130444 u=ubuntu n=ansible WARNING| [WARNING]: Unable to parse /home/ubuntu/.ansible/inventory/proxmox_test.yml as
+an inventory source
+
+2025-05-18 16:22:59,411 p=4130444 u=ubuntu n=ansible INFO|  _________________________________________
+< PLAY [List Proxmox VMs using API Token] >
+ -----------------------------------------
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+
+
+2025-05-18 16:22:59,442 p=4130444 u=ubuntu n=ansible INFO|  __________________________________
+< TASK [Display token information] >
+ ----------------------------------
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+
+
+2025-05-18 16:22:59,464 p=4130444 u=ubuntu n=ansible INFO| ok: [localhost] => {
+    "msg": [
+        "Using token ID: ansible-automation",
+        "Token value length: 36 characters"
+    ]
+}
+2025-05-18 16:22:59,489 p=4130444 u=ubuntu n=ansible INFO|  ______________________
+< TASK [Get node list] >
+ ----------------------
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+
+
+2025-05-18 16:23:00,080 p=4130444 u=ubuntu n=ansible INFO| ok: [localhost]
+2025-05-18 16:23:00,105 p=4130444 u=ubuntu n=ansible INFO|  ______________________
+< TASK [Display nodes] >
+ ----------------------
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+
+
+2025-05-18 16:23:00,121 p=4130444 u=ubuntu n=ansible INFO| ok: [localhost] => {
+    "node_result.json.data": [
+        {
+            "cpu": 0.0141913383900171,
+            "disk": 20816920576,
+            "id": "node/proxmox",
+            "level": "",
+            "maxcpu": 4,
+            "maxdisk": 60976705536,
+            "maxmem": 33522892800,
+            "mem": 11389583360,
+            "node": "proxmox",
+            "ssl_fingerprint": "7C:9F:89:97:B5:E2:26:72:FB:8E:21:19:F5:17:5C:0D:87:F7:02:22:7E:C6:1C:27:C6:28:F2:C0:70:E7:67:E6",
+            "status": "online",
+            "type": "node",
+            "uptime": 4623055
+        },
+        {
+            "cpu": 0.0543066993100378,
+            "disk": 42765627392,
+            "id": "node/zero-cool",
+            "level": "",
+            "maxcpu": 32,
+            "maxdisk": 82630385664,
+            "maxmem": 202763837440,
+            "mem": 97004589056,
+            "node": "zero-cool",
+            "ssl_fingerprint": "B4:62:AD:B4:98:4C:1C:B8:2D:F2:47:59:CB:DE:37:1E:66:41:97:9B:E3:86:07:7D:6A:83:28:13:FD:CC:2B:E6",
+            "status": "online",
+            "type": "node",
+            "uptime": 1876819
+        },
+        {
+            "cpu": 0.0182849936948298,
+            "disk": 19089219584,
+            "id": "node/technologic",
+            "level": "",
+            "maxcpu": 24,
+            "maxdisk": 58598735872,
+            "maxmem": 152069222400,
+            "mem": 64637870080,
+            "node": "technologic",
+            "ssl_fingerprint": "6D:D5:0F:34:E1:2B:FD:83:5F:1E:A9:7B:6D:0A:5B:8E:A4:FA:D1:94:42:E9:F5:62:AC:E1:E6:83:81:B5:1B:67",
+            "status": "online",
+            "type": "node",
+            "uptime": 5406225
+        },
+        {
+            "cpu": 0.141732283464567,
+            "disk": 22426537984,
+            "id": "node/thrasher",
+            "level": "",
+            "maxcpu": 12,
+            "maxdisk": 100861726720,
+            "maxmem": 33595908096,
+            "mem": 27050553344,
+            "node": "thrasher",
+            "ssl_fingerprint": "CD:10:AA:03:8B:DD:C4:3A:3F:D1:B7:FE:F4:DA:05:09:61:91:64:58:78:D2:C9:AB:87:F0:5E:C9:B2:B3:BF:BB",
+            "status": "online",
+            "type": "node",
+            "uptime": 4622959
+        },
+        {
+            "cpu": 0.029549526893213,
+            "disk": 13483900928,
+            "id": "node/monty",
+            "level": "",
+            "maxcpu": 32,
+            "maxdisk": 122709868544,
+            "maxmem": 405703557120,
+            "mem": 226374668288,
+            "node": "monty",
+            "ssl_fingerprint": "4C:22:56:8E:88:3C:96:79:37:B2:13:45:97:2B:75:58:76:81:42:F8:88:1A:04:07:2B:74:70:8B:66:6B:C7:7A",
+            "status": "online",
+            "type": "node",
+            "uptime": 2990233
+        }
+    ]
+}
+2025-05-18 16:23:00,145 p=4130444 u=ubuntu n=ansible INFO|  __________________________________
+< TASK [Get VM list for each node] >
+ ----------------------------------
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+
+
+2025-05-18 16:23:00,668 p=4130444 u=ubuntu n=ansible INFO| ok: [localhost] => (item={'id': 'node/proxmox', 'maxcpu': 4, 'type': 'node', 'node': 'proxmox', 'status': 'online', 'cpu': 0.0141913383900171, 'mem': 11389583360, 'maxmem': 33522892800, 'uptime': 4623055, 'ssl_fingerprint': '7C:9F:89:97:B5:E2:26:72:FB:8E:21:19:F5:17:5C:0D:87:F7:02:22:7E:C6:1C:27:C6:28:F2:C0:70:E7:67:E6', 'maxdisk': 60976705536, 'level': '', 'disk': 20816920576})
+2025-05-18 16:23:01,239 p=4130444 u=ubuntu n=ansible INFO| ok: [localhost] => (item={'maxcpu': 32, 'type': 'node', 'id': 'node/zero-cool', 'status': 'online', 'node': 'zero-cool', 'cpu': 0.0543066993100378, 'mem': 97004589056, 'uptime': 1876819, 'maxmem': 202763837440, 'disk': 42765627392, 'level': '', 'maxdisk': 82630385664, 'ssl_fingerprint': 'B4:62:AD:B4:98:4C:1C:B8:2D:F2:47:59:CB:DE:37:1E:66:41:97:9B:E3:86:07:7D:6A:83:28:13:FD:CC:2B:E6'})
+2025-05-18 16:23:01,748 p=4130444 u=ubuntu n=ansible INFO| ok: [localhost] => (item={'ssl_fingerprint': '6D:D5:0F:34:E1:2B:FD:83:5F:1E:A9:7B:6D:0A:5B:8E:A4:FA:D1:94:42:E9:F5:62:AC:E1:E6:83:81:B5:1B:67', 'maxdisk': 58598735872, 'level': '', 'disk': 19089219584, 'uptime': 5406225, 'maxmem': 152069222400, 'mem': 64637870080, 'cpu': 0.0182849936948298, 'node': 'technologic', 'status': 'online', 'id': 'node/technologic', 'maxcpu': 24, 'type': 'node'})
+2025-05-18 16:23:02,645 p=4130444 u=ubuntu n=ansible INFO| ok: [localhost] => (item={'ssl_fingerprint': 'CD:10:AA:03:8B:DD:C4:3A:3F:D1:B7:FE:F4:DA:05:09:61:91:64:58:78:D2:C9:AB:87:F0:5E:C9:B2:B3:BF:BB', 'maxdisk': 100861726720, 'level': '', 'disk': 22426537984, 'maxmem': 33595908096, 'uptime': 4622959, 'mem': 27050553344, 'cpu': 0.141732283464567, 'node': 'thrasher', 'status': 'online', 'id': 'node/thrasher', 'type': 'node', 'maxcpu': 12})
+2025-05-18 16:23:33,075 p=4130444 u=ubuntu n=ansible INFO| failed: [localhost] (item={'maxmem': 405703557120, 'uptime': 2990233, 'disk': 13483900928, 'level': '', 'maxdisk': 122709868544, 'ssl_fingerprint': '4C:22:56:8E:88:3C:96:79:37:B2:13:45:97:2B:75:58:76:81:42:F8:88:1A:04:07:2B:74:70:8B:66:6B:C7:7A', 'cpu': 0.029549526893213, 'mem': 226374668288, 'type': 'node', 'maxcpu': 32, 'id': 'node/monty', 'status': 'online', 'node': 'monty'}) => {"ansible_loop_var": "item", "changed": false, "elapsed": 30, "item": {"cpu": 0.029549526893213, "disk": 13483900928, "id": "node/monty", "level": "", "maxcpu": 32, "maxdisk": 122709868544, "maxmem": 405703557120, "mem": 226374668288, "node": "monty", "ssl_fingerprint": "4C:22:56:8E:88:3C:96:79:37:B2:13:45:97:2B:75:58:76:81:42:F8:88:1A:04:07:2B:74:70:8B:66:6B:C7:7A", "status": "online", "type": "node", "uptime": 2990233}, "msg": "Status code was -1 and not [200]: Connection failure: The read operation timed out", "redirected": false, "status": -1, "url": "https://192.168.1.47:8006/api2/json/nodes/monty/qemu"}
+2025-05-18 16:23:33,104 p=4130444 u=ubuntu n=ansible INFO|  ____________
+< PLAY RECAP >
+ ------------
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+
+
+2025-05-18 16:23:33,104 p=4130444 u=ubuntu n=ansible INFO| localhost                  : ok=3    changed=0    unreachable=0    failed=1    skipped=0    rescued=0    ignored=0   
+2025-05-18 16:26:25,373 p=4131765 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/proxmox-secure.yml with
+auto plugin: inventory source '/home/ubuntu/.ansible/inventory/proxmox-secure.yml' could
+not be verified by inventory plugin 'community.general.proxmox'
+
+2025-05-18 16:26:25,373 p=4131765 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/proxmox-secure.yml with
+yaml plugin: Plugin configuration YAML file, not YAML inventory
+
+2025-05-18 16:26:25,373 p=4131765 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/proxmox-secure.yml with ini
+plugin: Invalid host pattern 'plugin:' supplied, ending in ':' is not allowed, this
+character is reserved to provide a port.
+
+2025-05-18 16:26:25,373 p=4131765 u=ubuntu n=ansible WARNING| [WARNING]: Unable to parse /home/ubuntu/.ansible/inventory/proxmox-secure.yml as an
+inventory source
+
+2025-05-18 16:26:25,389 p=4131765 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/proxmox.yml with
+ansible_collections.community.general.plugins.inventory.proxmox plugin:
+'vault_proxmox_api_password' is undefined
+
+2025-05-18 16:26:25,389 p=4131765 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/proxmox.yml with auto
+plugin: 'vault_proxmox_api_password' is undefined
+
+2025-05-18 16:26:25,389 p=4131765 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/proxmox.yml with yaml
+plugin: Plugin configuration YAML file, not YAML inventory
+
+2025-05-18 16:26:25,389 p=4131765 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/proxmox.yml with ini
+plugin: Invalid host pattern 'plugin:' supplied, ending in ':' is not allowed, this
+character is reserved to provide a port.
+
+2025-05-18 16:26:25,389 p=4131765 u=ubuntu n=ansible WARNING| [WARNING]: Unable to parse /home/ubuntu/.ansible/inventory/proxmox.yml as an inventory
+source
+
+2025-05-18 16:26:25,396 p=4131765 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/proxmox_test.yml with auto
+plugin: inventory source '/home/ubuntu/.ansible/inventory/proxmox_test.yml' could not be
+verified by inventory plugin 'community.general.proxmox'
+
+2025-05-18 16:26:25,396 p=4131765 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/proxmox_test.yml with yaml
+plugin: Plugin configuration YAML file, not YAML inventory
+
+2025-05-18 16:26:25,396 p=4131765 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/proxmox_test.yml with ini
+plugin: Invalid host pattern 'plugin:' supplied, ending in ':' is not allowed, this
+character is reserved to provide a port.
+
+2025-05-18 16:26:25,396 p=4131765 u=ubuntu n=ansible WARNING| [WARNING]: Unable to parse /home/ubuntu/.ansible/inventory/proxmox_test.yml as an
+inventory source
+
+2025-05-18 16:26:25,511 p=4131765 u=ubuntu n=ansible INFO|  _________________________________________
+< PLAY [List Proxmox VMs using API Token] >
+ -----------------------------------------
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+
+
+2025-05-18 16:26:25,542 p=4131765 u=ubuntu n=ansible INFO|  __________________________________
+< TASK [Display token information] >
+ ----------------------------------
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+
+
+2025-05-18 16:26:25,565 p=4131765 u=ubuntu n=ansible INFO| ok: [localhost] => {
+    "msg": [
+        "Using token ID: ansible-automation",
+        "Token value length: 36 characters"
+    ]
+}
+2025-05-18 16:26:25,591 p=4131765 u=ubuntu n=ansible INFO|  ______________________
+< TASK [Get node list] >
+ ----------------------
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+
+
+2025-05-18 16:26:26,192 p=4131765 u=ubuntu n=ansible INFO| ok: [localhost]
+2025-05-18 16:26:26,218 p=4131765 u=ubuntu n=ansible INFO|  ______________________
+< TASK [Display nodes] >
+ ----------------------
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+
+
+2025-05-18 16:26:26,235 p=4131765 u=ubuntu n=ansible INFO| ok: [localhost] => {
+    "node_result.json.data": [
+        {
+            "cpu": 0.013671875,
+            "disk": 20817154048,
+            "id": "node/proxmox",
+            "level": "",
+            "maxcpu": 4,
+            "maxdisk": 60976705536,
+            "maxmem": 33522892800,
+            "mem": 11423707136,
+            "node": "proxmox",
+            "ssl_fingerprint": "7C:9F:89:97:B5:E2:26:72:FB:8E:21:19:F5:17:5C:0D:87:F7:02:22:7E:C6:1C:27:C6:28:F2:C0:70:E7:67:E6",
+            "status": "online",
+            "type": "node",
+            "uptime": 4623265
+        },
+        {
+            "cpu": 0.0437770425044541,
+            "disk": 42765848576,
+            "id": "node/zero-cool",
+            "level": "",
+            "maxcpu": 32,
+            "maxdisk": 82630385664,
+            "maxmem": 202763837440,
+            "mem": 97079709696,
+            "node": "zero-cool",
+            "ssl_fingerprint": "B4:62:AD:B4:98:4C:1C:B8:2D:F2:47:59:CB:DE:37:1E:66:41:97:9B:E3:86:07:7D:6A:83:28:13:FD:CC:2B:E6",
+            "status": "online",
+            "type": "node",
+            "uptime": 1877029
+        },
+        {
+            "cpu": 0.0136128386900361,
+            "disk": 19089432576,
+            "id": "node/technologic",
+            "level": "",
+            "maxcpu": 24,
+            "maxdisk": 58598735872,
+            "maxmem": 152069222400,
+            "mem": 64691687424,
+            "node": "technologic",
+            "ssl_fingerprint": "6D:D5:0F:34:E1:2B:FD:83:5F:1E:A9:7B:6D:0A:5B:8E:A4:FA:D1:94:42:E9:F5:62:AC:E1:E6:83:81:B5:1B:67",
+            "status": "online",
+            "type": "node",
+            "uptime": 5406425
+        },
+        {
+            "cpu": 0.115815284021251,
+            "disk": 22426771456,
+            "id": "node/thrasher",
+            "level": "",
+            "maxcpu": 12,
+            "maxdisk": 100861726720,
+            "maxmem": 33595908096,
+            "mem": 27069083648,
+            "node": "thrasher",
+            "ssl_fingerprint": "CD:10:AA:03:8B:DD:C4:3A:3F:D1:B7:FE:F4:DA:05:09:61:91:64:58:78:D2:C9:AB:87:F0:5E:C9:B2:B3:BF:BB",
+            "status": "online",
+            "type": "node",
+            "uptime": 4623170
+        },
+        {
+            "cpu": 0.0195474211722227,
+            "disk": 13484032000,
+            "id": "node/monty",
+            "level": "",
+            "maxcpu": 32,
+            "maxdisk": 122709737472,
+            "maxmem": 405703557120,
+            "mem": 226080346112,
+            "node": "monty",
+            "ssl_fingerprint": "4C:22:56:8E:88:3C:96:79:37:B2:13:45:97:2B:75:58:76:81:42:F8:88:1A:04:07:2B:74:70:8B:66:6B:C7:7A",
+            "status": "online",
+            "type": "node",
+            "uptime": 2990443
+        }
+    ]
+}
+2025-05-18 16:26:26,259 p=4131765 u=ubuntu n=ansible INFO|  __________________________________
+< TASK [Get VM list for each node] >
+ ----------------------------------
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+
+
+2025-05-18 16:26:26,798 p=4131765 u=ubuntu n=ansible INFO| ok: [localhost] => (item={'cpu': 0.013671875, 'mem': 11423707136, 'id': 'node/proxmox', 'type': 'node', 'maxcpu': 4, 'node': 'proxmox', 'status': 'online', 'maxmem': 33522892800, 'uptime': 4623265, 'maxdisk': 60976705536, 'ssl_fingerprint': '7C:9F:89:97:B5:E2:26:72:FB:8E:21:19:F5:17:5C:0D:87:F7:02:22:7E:C6:1C:27:C6:28:F2:C0:70:E7:67:E6', 'disk': 20817154048, 'level': ''})
+2025-05-18 16:26:27,263 p=4131765 u=ubuntu n=ansible INFO| ok: [localhost] => (item={'uptime': 1877029, 'maxmem': 202763837440, 'ssl_fingerprint': 'B4:62:AD:B4:98:4C:1C:B8:2D:F2:47:59:CB:DE:37:1E:66:41:97:9B:E3:86:07:7D:6A:83:28:13:FD:CC:2B:E6', 'maxdisk': 82630385664, 'level': '', 'disk': 42765848576, 'cpu': 0.0437770425044541, 'mem': 97079709696, 'id': 'node/zero-cool', 'type': 'node', 'maxcpu': 32, 'node': 'zero-cool', 'status': 'online'})
+2025-05-18 16:26:27,777 p=4131765 u=ubuntu n=ansible INFO| ok: [localhost] => (item={'id': 'node/technologic', 'type': 'node', 'maxcpu': 24, 'node': 'technologic', 'status': 'online', 'cpu': 0.0136128386900361, 'mem': 64691687424, 'maxmem': 152069222400, 'uptime': 5406425, 'ssl_fingerprint': '6D:D5:0F:34:E1:2B:FD:83:5F:1E:A9:7B:6D:0A:5B:8E:A4:FA:D1:94:42:E9:F5:62:AC:E1:E6:83:81:B5:1B:67', 'maxdisk': 58598735872, 'level': '', 'disk': 19089432576})
+2025-05-18 16:26:28,407 p=4131765 u=ubuntu n=ansible INFO| ok: [localhost] => (item={'mem': 27069083648, 'cpu': 0.115815284021251, 'node': 'thrasher', 'status': 'online', 'id': 'node/thrasher', 'maxcpu': 12, 'type': 'node', 'ssl_fingerprint': 'CD:10:AA:03:8B:DD:C4:3A:3F:D1:B7:FE:F4:DA:05:09:61:91:64:58:78:D2:C9:AB:87:F0:5E:C9:B2:B3:BF:BB', 'maxdisk': 100861726720, 'level': '', 'disk': 22426771456, 'maxmem': 33595908096, 'uptime': 4623170})
+2025-05-18 16:26:38,813 p=4131765 u=ubuntu n=ansible INFO| failed: [localhost] (item={'uptime': 2990443, 'maxmem': 405703557120, 'maxdisk': 122709737472, 'ssl_fingerprint': '4C:22:56:8E:88:3C:96:79:37:B2:13:45:97:2B:75:58:76:81:42:F8:88:1A:04:07:2B:74:70:8B:66:6B:C7:7A', 'disk': 13484032000, 'level': '', 'id': 'node/monty', 'maxcpu': 32, 'type': 'node', 'node': 'monty', 'status': 'online', 'cpu': 0.0195474211722227, 'mem': 226080346112}) => {"ansible_loop_var": "item", "changed": false, "elapsed": 10, "item": {"cpu": 0.0195474211722227, "disk": 13484032000, "id": "node/monty", "level": "", "maxcpu": 32, "maxdisk": 122709737472, "maxmem": 405703557120, "mem": 226080346112, "node": "monty", "ssl_fingerprint": "4C:22:56:8E:88:3C:96:79:37:B2:13:45:97:2B:75:58:76:81:42:F8:88:1A:04:07:2B:74:70:8B:66:6B:C7:7A", "status": "online", "type": "node", "uptime": 2990443}, "msg": "Status code was -1 and not [200, 404]: Connection failure: The read operation timed out", "redirected": false, "status": -1, "url": "https://192.168.1.47:8006/api2/json/nodes/monty/qemu"}
+2025-05-18 16:26:38,816 p=4131765 u=ubuntu n=ansible INFO| ...ignoring
+2025-05-18 16:26:38,842 p=4131765 u=ubuntu n=ansible INFO|  ____________________________
+< TASK [Display VMs by node] >
+ ----------------------------
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+
+
+2025-05-18 16:26:38,896 p=4131765 u=ubuntu n=ansible INFO| ok: [localhost] => (item={'redirected': False, 'url': 'https://192.168.1.47:8006/api2/json/nodes/proxmox/qemu', 'status': 200, 'cache_control': 'max-age=0', 'connection': 'close', 'date': 'Sun, 18 May 2025 16:26:26 GMT', 'pragma': 'no-cache', 'server': 'pve-api-daemon/3.0', 'content_length': '3512', 'content_type': 'application/json;charset=UTF-8', 'expires': 'Sun, 18 May 2025 16:26:26 GMT', 'cookies_string': '', 'cookies': {}, 'msg': 'OK (3512 bytes)', 'elapsed': 0, 'changed': False, 'json': {'data': [{'maxdisk': 107374182400, 'status': 'stopped', 'uptime': 0, 'name': 'workingCuda', 'diskread': 0, 'diskwrite': 0, 'netout': 0, 'vmid': 147, 'cpus': 4, 'maxmem': 17179869184, 'cpu': 0, 'mem': 0, 'tags': 'back_magic', 'netin': 0, 'disk': 0}, {'mem': 0, 'netin': 0, 'disk': 0, 'cpus': 4, 'maxmem': 17448304640, 'cpu': 0, 'diskread': 0, 'diskwrite': 0, 'netout': 0, 'name': 'cpuWinMinerBackUp', 'vmid': 120, 'uptime': 0, 'status': 'stopped', 'maxdisk': 34359738368}, {'maxdisk': 34359738368, 'status': 'stopped', 'uptime': 0, 'shares': 1000, 'name': 'Calibre', 'diskwrite': 0, 'diskread': 0, 'netout': 0, 'vmid': 127, 'maxmem': 8388608000, 'cpus': 4, 'balloon_min': 4294967296, 'cpu': 0, 'mem': 0, 'tags': 'api', 'netin': 0, 'disk': 0}, {'tags': 'back_magic', 'netin': 0, 'disk': 0, 'mem': 0, 'cpu': 0, 'maxmem': 8388608000, 'cpus': 4, 'vmid': 125, 'name': 'cpuWimk80', 'diskwrite': 0, 'diskread': 0, 'netout': 0, 'maxdisk': 42949672960, 'status': 'stopped', 'uptime': 0}, {'maxmem': 13589544960, 'cpus': 4, 'cpu': 0, 'mem': 0, 'netin': 0, 'disk': 0, 'maxdisk': 68719476736, 'status': 'stopped', 'uptime': 0, 'name': 'cpuWinMiner', 'diskwrite': 0, 'diskread': 0, 'netout': 0, 'vmid': 121}, {'name': 'tegam1.12.2022', 'diskwrite': 0, 'diskread': 0, 'netout': 0, 'vmid': 103, 'maxdisk': 34359738368, 'status': 'stopped', 'uptime': 0, 'mem': 0, 'netin': 0, 'disk': 0, 'maxmem': 4294967296, 'cpus': 4, 'cpu': 0}, {'mem': 0, 'netin': 0, 'disk': 0, 'maxmem': 25769803776, 'cpus': 4, 'cpu': 0, 'balloon_min': 536870912, 'diskread': 0, 'diskwrite': 0, 'netout': 0, 'shares': 1000, 'name': 'ineed2pBackup', 'vmid': 141, 'status': 'stopped', 'uptime': 0, 'maxdisk': 64424509440}, {'name': 'andrewsCUDAHELL', 'diskwrite': 0, 'diskread': 0, 'netout': 0, 'vmid': 146, 'maxdisk': 107374182400, 'status': 'stopped', 'uptime': 0, 'mem': 0, 'netin': 0, 'disk': 0, 'maxmem': 17179869184, 'cpus': 4, 'cpu': 0}, {'maxmem': 17179869184, 'cpus': 4, 'cpu': 0, 'mem': 0, 'netin': 0, 'disk': 0, 'maxdisk': 107374182400, 'uptime': 0, 'status': 'stopped', 'name': 'poposCudaworkingbackup', 'diskwrite': 0, 'diskread': 0, 'netout': 0, 'vmid': 110}, {'netin': 0, 'disk': 0, 'mem': 0, 'cpu': 0, 'cpus': 4, 'maxmem': 8925478912, 'vmid': 111, 'diskread': 0, 'diskwrite': 0, 'netout': 0, 'name': 'winMiner2', 'uptime': 0, 'status': 'stopped', 'maxdisk': 53687091200}, {'vmid': 136, 'name': 'GolemBackup', 'shares': 1000, 'netout': 0, 'diskwrite': 0, 'diskread': 0, 'maxdisk': 107374182400, 'status': 'stopped', 'uptime': 0, 'disk': 0, 'netin': 0, 'mem': 0, 'balloon_min': 536870912, 'cpu': 0, 'cpus': 4, 'maxmem': 34359738368}, {'maxdisk': 34359738368, 'status': 'stopped', 'uptime': 0, 'name': 'Copy-of-VM-freshWindows', 'diskwrite': 0, 'diskread': 0, 'netout': 0, 'vmid': 123, 'maxmem': 4294967296, 'cpus': 4, 'cpu': 0, 'mem': 0, 'netin': 0, 'disk': 0}, {'netin': 0, 'disk': 0, 'mem': 0, 'cpu': 0, 'maxmem': 6291456000, 'cpus': 4, 'vmid': 101, 'diskwrite': 0, 'diskread': 0, 'netout': 0, 'name': 'Galactica', 'status': 'stopped', 'uptime': 0, 'maxdisk': 42949672960}, {'disk': 0, 'netin': 0, 'mem': 0, 'cpu': 0, 'cpus': 1, 'maxmem': 536870912, 'vmid': 102, 'netout': 0, 'diskread': 0, 'lock': 'clone', 'diskwrite': 0, 'name': 'VM 102', 'uptime': 0, 'status': 'stopped', 'maxdisk': 0}, {'uptime': 0, 'status': 'stopped', 'maxdisk': 107374182400, 'netout': 0, 'diskread': 0, 'diskwrite': 0, 'name': 'cudahell07102022', 'vmid': 100, 'maxmem': 17179869184, 'cpus': 4, 'cpu': 0, 'mem': 0, 'disk': 0, 'netin': 0, 'tags': 'back_magic;do_not_touch'}, {'vmid': 114, 'name': 'nestedXP', 'diskread': 0, 'diskwrite': 0, 'netout': 0, 'maxdisk': 34359738368, 'uptime': 0, 'status': 'stopped', 'tags': 'back_magic', 'netin': 0, 'disk': 0, 'mem': 0, 'cpu': 0, 'maxmem': 17616076800, 'cpus': 4}, {'shares': 1000, 'name': 'yeedauggold', 'diskread': 0, 'diskwrite': 0, 'netout': 0, 'vmid': 130, 'maxdisk': 55834574848, 'status': 'stopped', 'uptime': 0, 'mem': 0, 'netin': 0, 'disk': 0, 'cpus': 4, 'maxmem': 100663296000, 'balloon_min': 50331648000, 'cpu': 0}]}, 'invocation': {'module_args': {'url': 'https://192.168.1.47:8006/api2/json/nodes/proxmox/qemu', 'method': 'GET', 'validate_certs': False, 'headers': {'Authorization': 'PVEAPIToken=root@pam!ansible-automation=65935f57-cc2a-49fe-b536-8139e1c79bbc'}, 'timeout': 10, 'status_code': [200, 404], 'force': False, 'http_agent': 'ansible-httpget', 'use_proxy': True, 'force_basic_auth': False, 'use_gssapi': False, 'body_format': 'raw', 'return_content': False, 'follow_redirects': 'safe', 'remote_src': False, 'unredirected_headers': [], 'decompress': True, 'use_netrc': True, 'unsafe_writes': False, 'url_username': None, 'url_password': None, 'client_cert': None, 'client_key': None, 'dest': None, 'body': None, 'src': None, 'creates': None, 'removes': None, 'unix_socket': None, 'ca_path': None, 'ciphers': None, 'mode': None, 'owner': None, 'group': None, 'seuser': None, 'serole': None, 'selevel': None, 'setype': None, 'attributes': None}}, 'failed': False, 'item': {'cpu': 0.013671875, 'mem': 11423707136, 'id': 'node/proxmox', 'type': 'node', 'maxcpu': 4, 'node': 'proxmox', 'status': 'online', 'maxmem': 33522892800, 'uptime': 4623265, 'maxdisk': 60976705536, 'ssl_fingerprint': '7C:9F:89:97:B5:E2:26:72:FB:8E:21:19:F5:17:5C:0D:87:F7:02:22:7E:C6:1C:27:C6:28:F2:C0:70:E7:67:E6', 'disk': 20817154048, 'level': ''}, 'ansible_loop_var': 'item'}) => {
+    "msg": "Node proxmox VMs: ['workingCuda', 'cpuWinMinerBackUp', 'Calibre', 'cpuWimk80', 'cpuWinMiner', 'tegam1.12.2022', 'ineed2pBackup', 'andrewsCUDAHELL', 'poposCudaworkingbackup', 'winMiner2', 'GolemBackup', 'Copy-of-VM-freshWindows', 'Galactica', 'VM 102', 'cudahell07102022', 'nestedXP', 'yeedauggold']"
+}
+2025-05-18 16:26:38,907 p=4131765 u=ubuntu n=ansible INFO| ok: [localhost] => (item={'redirected': False, 'url': 'https://192.168.1.47:8006/api2/json/nodes/zero-cool/qemu', 'status': 200, 'cache_control': 'max-age=0', 'connection': 'close', 'date': 'Sun, 18 May 2025 16:26:27 GMT', 'pragma': 'no-cache', 'server': 'pve-api-daemon/3.0', 'content_length': '1472', 'content_type': 'application/json;charset=UTF-8', 'expires': 'Sun, 18 May 2025 16:26:27 GMT', 'cookies_string': '', 'cookies': {}, 'msg': 'OK (1472 bytes)', 'elapsed': 0, 'changed': False, 'json': {'data': [{'vmid': 9999, 'diskwrite': 0, 'cpu': 0, 'netout': 0, 'maxmem': 2147483648, 'netin': 0, 'disk': 0, 'diskread': 0, 'name': 'VM-Guest', 'status': 'stopped', 'mem': 0, 'cpus': 1, 'maxdisk': 0, 'uptime': 0}, {'maxdisk': 734439407616, 'cpus': 28, 'tags': 'softwaredev;windows', 'uptime': 1876980, 'disk': 0, 'diskread': 0, 'name': 'WinDeath', 'maxmem': 67108864000, 'netin': 665404200, 'mem': 64012999880, 'pid': 2469, 'status': 'running', 'netout': 105555818, 'cpu': 0.0370006641328293, 'balloon_min': 8388608000, 'diskwrite': 0, 'vmid': 1001, 'shares': 1000}, {'tags': 'bughunting;ubuntu;gitlab;network_analysis', 'uptime': 1876972, 'maxdisk': 51539607552, 'cpus': 30, 'mem': 16516793258, 'pid': 2690, 'status': 'running', 'disk': 0, 'diskread': 0, 'name': 'GitLab-Testing', 'maxmem': 33554432000, 'netin': 670809494, 'balloon_min': 4194304000, 'netout': 9861826, 'cpu': 0.0133089164802151, 'shares': 1000, 'diskwrite': 0, 'vmid': 1337}, {'maxdisk': 107374182400, 'cpus': 16, 'tags': 'back_magic;do_not_touch', 'uptime': 1876987, 'disk': 0, 'diskread': 0, 'name': 'VM 144', 'maxmem': 10737418240, 'netin': 571308487, 'mem': 2561466374, 'pid': 2316, 'status': 'running', 'netout': 133529717, 'cpu': 0.00248692988433771, 'balloon_min': 536870912, 'diskwrite': 0, 'vmid': 144, 'shares': 1000}, {'mem': 1624246007, 'status': 'running', 'pid': 2905, 'name': 'CodeServ', 'diskread': 0, 'disk': 0, 'netin': 60, 'maxmem': 67108864000, 'tags': 'softwaredev;storage;testing', 'uptime': 1876966, 'maxdisk': 137438953472, 'cpus': 32, 'shares': 1000, 'diskwrite': 0, 'vmid': 2001, 'balloon_min': 8388608000, 'netout': 0, 'cpu': 0.00308136678352087}]}, 'invocation': {'module_args': {'url': 'https://192.168.1.47:8006/api2/json/nodes/zero-cool/qemu', 'method': 'GET', 'validate_certs': False, 'headers': {'Authorization': 'PVEAPIToken=root@pam!ansible-automation=65935f57-cc2a-49fe-b536-8139e1c79bbc'}, 'timeout': 10, 'status_code': [200, 404], 'force': False, 'http_agent': 'ansible-httpget', 'use_proxy': True, 'force_basic_auth': False, 'use_gssapi': False, 'body_format': 'raw', 'return_content': False, 'follow_redirects': 'safe', 'remote_src': False, 'unredirected_headers': [], 'decompress': True, 'use_netrc': True, 'unsafe_writes': False, 'url_username': None, 'url_password': None, 'client_cert': None, 'client_key': None, 'dest': None, 'body': None, 'src': None, 'creates': None, 'removes': None, 'unix_socket': None, 'ca_path': None, 'ciphers': None, 'mode': None, 'owner': None, 'group': None, 'seuser': None, 'serole': None, 'selevel': None, 'setype': None, 'attributes': None}}, 'failed': False, 'item': {'uptime': 1877029, 'maxmem': 202763837440, 'ssl_fingerprint': 'B4:62:AD:B4:98:4C:1C:B8:2D:F2:47:59:CB:DE:37:1E:66:41:97:9B:E3:86:07:7D:6A:83:28:13:FD:CC:2B:E6', 'maxdisk': 82630385664, 'level': '', 'disk': 42765848576, 'cpu': 0.0437770425044541, 'mem': 97079709696, 'id': 'node/zero-cool', 'type': 'node', 'maxcpu': 32, 'node': 'zero-cool', 'status': 'online'}, 'ansible_loop_var': 'item'}) => {
+    "msg": "Node zero-cool VMs: ['VM-Guest', 'WinDeath', 'GitLab-Testing', 'VM 144', 'CodeServ']"
+}
+2025-05-18 16:26:38,921 p=4131765 u=ubuntu n=ansible INFO| ok: [localhost] => (item={'redirected': False, 'url': 'https://192.168.1.47:8006/api2/json/nodes/technologic/qemu', 'status': 200, 'cache_control': 'max-age=0', 'connection': 'close', 'date': 'Sun, 18 May 2025 16:26:27 GMT', 'pragma': 'no-cache', 'server': 'pve-api-daemon/3.0', 'content_length': '2111', 'content_type': 'application/json;charset=UTF-8', 'expires': 'Sun, 18 May 2025 16:26:27 GMT', 'cookies_string': '', 'cookies': {}, 'msg': 'OK (2111 bytes)', 'elapsed': 0, 'changed': False, 'json': {'data': [{'mem': 3489316369, 'diskwrite': 0, 'status': 'running', 'name': 'winrip2', 'cpus': 4, 'maxdisk': 51539607552, 'vmid': 139, 'cpu': 0.0168930975228253, 'uptime': 4212486, 'maxmem': 4294967296, 'disk': 0, 'pid': 870923, 'netin': 4037107143, 'diskread': 0, 'netout': 25585559337}, {'cpus': 1, 'maxdisk': 26843545600, 'uptime': 5406314, 'cpu': 0.0405822687617297, 'vmid': 129, 'netout': 62463006871, 'diskread': 0, 'pid': 4041, 'netin': 65731405450, 'maxmem': 1073741824, 'disk': 0, 'mem': 695529142, 'diskwrite': 0, 'name': 'TeenageMutantNinjaTunnel', 'status': 'running'}, {'diskread': 0, 'netout': 28913485744, 'disk': 0, 'maxmem': 4294967296, 'netin': 4089171125, 'pid': 870772, 'uptime': 4212490, 'cpu': 0.0183615348793352, 'vmid': 142, 'maxdisk': 51539607552, 'cpus': 4, 'name': 'winrip', 'status': 'running', 'diskwrite': 0, 'mem': 3471170198}, {'status': 'stopped', 'name': 'haosova-6.4', 'mem': 0, 'balloon_min': 536870912, 'diskwrite': 0, 'uptime': 0, 'cpu': 0, 'vmid': 148, 'diskread': 0, 'netout': 0, 'maxmem': 8589934592, 'disk': 0, 'netin': 0, 'cpus': 24, 'shares': 1000, 'serial': 1, 'maxdisk': 0}, {'diskwrite': 0, 'mem': 3465913472, 'name': 'winrip1', 'status': 'running', 'maxdisk': 51539607552, 'cpus': 4, 'netout': 11482227537, 'diskread': 0, 'pid': 871052, 'netin': 3873709044, 'maxmem': 4294967296, 'disk': 0, 'uptime': 4212480, 'cpu': 0.0179246444261587, 'vmid': 145}, {'name': 'gpt4allvm', 'status': 'stopped', 'balloon_min': 536870912, 'mem': 0, 'diskwrite': 0, 'uptime': 0, 'vmid': 137, 'cpu': 0, 'diskread': 0, 'netout': 0, 'maxmem': 4294967296, 'disk': 0, 'netin': 0, 'cpus': 15, 'shares': 1000, 'maxdisk': 34359738368}, {'mem': 0, 'cpus': 4, 'diskwrite': 0, 'maxdisk': 51539607552, 'uptime': 0, 'vmid': 132, 'cpu': 0, 'status': 'stopped', 'name': 'winripBackup', 'diskread': 0, 'netout': 0, 'maxmem': 4294967296, 'disk': 0, 'netin': 0}, {'netin': 0, 'disk': 0, 'maxmem': 8489271296, 'netout': 0, 'diskread': 0, 'cpu': 0, 'vmid': 149, 'uptime': 0, 'maxdisk': 34359738368, 'cpus': 4, 'shares': 1000, 'status': 'stopped', 'name': 'honeyGain', 'diskwrite': 0, 'mem': 0, 'balloon_min': 4294967296}, {'status': 'stopped', 'name': 'golemscooby', 'mem': 0, 'balloon_min': 536870912, 'diskwrite': 0, 'uptime': 0, 'cpu': 0, 'vmid': 150, 'diskread': 0, 'netout': 0, 'disk': 0, 'maxmem': 34359738368, 'netin': 0, 'cpus': 8, 'shares': 1000, 'maxdisk': 107374182400}]}, 'invocation': {'module_args': {'url': 'https://192.168.1.47:8006/api2/json/nodes/technologic/qemu', 'method': 'GET', 'validate_certs': False, 'headers': {'Authorization': 'PVEAPIToken=root@pam!ansible-automation=65935f57-cc2a-49fe-b536-8139e1c79bbc'}, 'timeout': 10, 'status_code': [200, 404], 'force': False, 'http_agent': 'ansible-httpget', 'use_proxy': True, 'force_basic_auth': False, 'use_gssapi': False, 'body_format': 'raw', 'return_content': False, 'follow_redirects': 'safe', 'remote_src': False, 'unredirected_headers': [], 'decompress': True, 'use_netrc': True, 'unsafe_writes': False, 'url_username': None, 'url_password': None, 'client_cert': None, 'client_key': None, 'dest': None, 'body': None, 'src': None, 'creates': None, 'removes': None, 'unix_socket': None, 'ca_path': None, 'ciphers': None, 'mode': None, 'owner': None, 'group': None, 'seuser': None, 'serole': None, 'selevel': None, 'setype': None, 'attributes': None}}, 'failed': False, 'item': {'id': 'node/technologic', 'type': 'node', 'maxcpu': 24, 'node': 'technologic', 'status': 'online', 'cpu': 0.0136128386900361, 'mem': 64691687424, 'maxmem': 152069222400, 'uptime': 5406425, 'ssl_fingerprint': '6D:D5:0F:34:E1:2B:FD:83:5F:1E:A9:7B:6D:0A:5B:8E:A4:FA:D1:94:42:E9:F5:62:AC:E1:E6:83:81:B5:1B:67', 'maxdisk': 58598735872, 'level': '', 'disk': 19089432576}, 'ansible_loop_var': 'item'}) => {
+    "msg": "Node technologic VMs: ['winrip2', 'TeenageMutantNinjaTunnel', 'winrip', 'haosova-6.4', 'winrip1', 'gpt4allvm', 'winripBackup', 'honeyGain', 'golemscooby']"
+}
+2025-05-18 16:26:38,930 p=4131765 u=ubuntu n=ansible INFO| ok: [localhost] => (item={'redirected': False, 'url': 'https://192.168.1.47:8006/api2/json/nodes/thrasher/qemu', 'status': 200, 'cache_control': 'max-age=0', 'connection': 'close', 'date': 'Sun, 18 May 2025 16:26:28 GMT', 'pragma': 'no-cache', 'server': 'pve-api-daemon/3.0', 'content_length': '611', 'content_type': 'application/json;charset=UTF-8', 'expires': 'Sun, 18 May 2025 16:26:28 GMT', 'cookies_string': '', 'cookies': {}, 'msg': 'OK (611 bytes)', 'elapsed': 0, 'changed': False, 'json': {'data': [{'mem': 7141311541, 'netout': 6945552018, 'netin': 16212313146, 'shares': 1000, 'pid': 1797, 'name': 'ecoGolem', 'vmid': 106, 'cpus': 11, 'maxmem': 32505856000, 'diskwrite': 0, 'uptime': 4623117, 'status': 'running', 'cpu': 0, 'disk': 0, 'maxdisk': 107374182400, 'diskread': 0, 'balloon_min': 536870912}, {'disk': 0, 'maxdisk': 123480309760, 'diskread': 0, 'tags': 'back_magic;do_not_touch', 'balloon_min': 536870912, 'mem': 9868162590, 'netout': 12093596591656, 'netin': 101127301554835, 'shares': 1000, 'pid': 2899078, 'name': 'ineed2p', 'cpus': 12, 'vmid': 108, 'uptime': 4161087, 'diskwrite': 0, 'maxmem': 25769803776, 'status': 'running', 'cpu': 0.136332777050087}]}, 'invocation': {'module_args': {'url': 'https://192.168.1.47:8006/api2/json/nodes/thrasher/qemu', 'method': 'GET', 'validate_certs': False, 'headers': {'Authorization': 'PVEAPIToken=root@pam!ansible-automation=65935f57-cc2a-49fe-b536-8139e1c79bbc'}, 'timeout': 10, 'status_code': [200, 404], 'force': False, 'http_agent': 'ansible-httpget', 'use_proxy': True, 'force_basic_auth': False, 'use_gssapi': False, 'body_format': 'raw', 'return_content': False, 'follow_redirects': 'safe', 'remote_src': False, 'unredirected_headers': [], 'decompress': True, 'use_netrc': True, 'unsafe_writes': False, 'url_username': None, 'url_password': None, 'client_cert': None, 'client_key': None, 'dest': None, 'body': None, 'src': None, 'creates': None, 'removes': None, 'unix_socket': None, 'ca_path': None, 'ciphers': None, 'mode': None, 'owner': None, 'group': None, 'seuser': None, 'serole': None, 'selevel': None, 'setype': None, 'attributes': None}}, 'failed': False, 'item': {'mem': 27069083648, 'cpu': 0.115815284021251, 'node': 'thrasher', 'status': 'online', 'id': 'node/thrasher', 'maxcpu': 12, 'type': 'node', 'ssl_fingerprint': 'CD:10:AA:03:8B:DD:C4:3A:3F:D1:B7:FE:F4:DA:05:09:61:91:64:58:78:D2:C9:AB:87:F0:5E:C9:B2:B3:BF:BB', 'maxdisk': 100861726720, 'level': '', 'disk': 22426771456, 'maxmem': 33595908096, 'uptime': 4623170}, 'ansible_loop_var': 'item'}) => {
+    "msg": "Node thrasher VMs: ['ecoGolem', 'ineed2p']"
+}
+2025-05-18 16:26:38,935 p=4131765 u=ubuntu n=ansible INFO| skipping: [localhost] => (item={'redirected': False, 'url': 'https://192.168.1.47:8006/api2/json/nodes/monty/qemu', 'status': -1, 'elapsed': 10, 'changed': False, 'failed': True, 'msg': 'Status code was -1 and not [200, 404]: Connection failure: The read operation timed out', 'invocation': {'module_args': {'url': 'https://192.168.1.47:8006/api2/json/nodes/monty/qemu', 'method': 'GET', 'validate_certs': False, 'headers': {'Authorization': 'PVEAPIToken=root@pam!ansible-automation=65935f57-cc2a-49fe-b536-8139e1c79bbc'}, 'timeout': 10, 'status_code': [200, 404], 'force': False, 'http_agent': 'ansible-httpget', 'use_proxy': True, 'force_basic_auth': False, 'use_gssapi': False, 'body_format': 'raw', 'return_content': False, 'follow_redirects': 'safe', 'remote_src': False, 'unredirected_headers': [], 'decompress': True, 'use_netrc': True, 'unsafe_writes': False, 'url_username': None, 'url_password': None, 'client_cert': None, 'client_key': None, 'dest': None, 'body': None, 'src': None, 'creates': None, 'removes': None, 'unix_socket': None, 'ca_path': None, 'ciphers': None, 'mode': None, 'owner': None, 'group': None, 'seuser': None, 'serole': None, 'selevel': None, 'setype': None, 'attributes': None}}, 'item': {'uptime': 2990443, 'maxmem': 405703557120, 'maxdisk': 122709737472, 'ssl_fingerprint': '4C:22:56:8E:88:3C:96:79:37:B2:13:45:97:2B:75:58:76:81:42:F8:88:1A:04:07:2B:74:70:8B:66:6B:C7:7A', 'disk': 13484032000, 'level': '', 'id': 'node/monty', 'maxcpu': 32, 'type': 'node', 'node': 'monty', 'status': 'online', 'cpu': 0.0195474211722227, 'mem': 226080346112}, 'ansible_loop_var': 'item'}) 
+2025-05-18 16:26:38,967 p=4131765 u=ubuntu n=ansible INFO|  ________________________
+< TASK [Display summary] >
+ ------------------------
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+
+
+2025-05-18 16:26:38,983 p=4131765 u=ubuntu n=ansible INFO| fatal: [localhost]: FAILED! => {"msg": "The task includes an option with an undefined variable.. 'dict object' has no attribute 'data | default([]) | length'\n\nThe error appears to be in '/home/ubuntu/.ansible/playbooks/list_vms_token.yml': line 51, column 7, but may\nbe elsewhere in the file depending on the exact syntax problem.\n\nThe offending line appears to be:\n\n\n    - name: Display summary\n      ^ here\n"}
+2025-05-18 16:26:39,008 p=4131765 u=ubuntu n=ansible INFO|  ____________
+< PLAY RECAP >
+ ------------
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+
+
+2025-05-18 16:26:39,008 p=4131765 u=ubuntu n=ansible INFO| localhost                  : ok=5    changed=0    unreachable=0    failed=1    skipped=0    rescued=0    ignored=1   
+2025-05-18 16:27:12,669 p=4132355 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/proxmox-secure.yml with
+auto plugin: inventory source '/home/ubuntu/.ansible/inventory/proxmox-secure.yml' could
+not be verified by inventory plugin 'community.general.proxmox'
+
+2025-05-18 16:27:12,669 p=4132355 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/proxmox-secure.yml with
+yaml plugin: Plugin configuration YAML file, not YAML inventory
+
+2025-05-18 16:27:12,669 p=4132355 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/proxmox-secure.yml with ini
+plugin: Invalid host pattern 'plugin:' supplied, ending in ':' is not allowed, this
+character is reserved to provide a port.
+
+2025-05-18 16:27:12,669 p=4132355 u=ubuntu n=ansible WARNING| [WARNING]: Unable to parse /home/ubuntu/.ansible/inventory/proxmox-secure.yml as an
+inventory source
+
+2025-05-18 16:27:12,685 p=4132355 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/proxmox.yml with
+ansible_collections.community.general.plugins.inventory.proxmox plugin:
+'vault_proxmox_api_password' is undefined
+
+2025-05-18 16:27:12,685 p=4132355 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/proxmox.yml with auto
+plugin: 'vault_proxmox_api_password' is undefined
+
+2025-05-18 16:27:12,686 p=4132355 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/proxmox.yml with yaml
+plugin: Plugin configuration YAML file, not YAML inventory
+
+2025-05-18 16:27:12,686 p=4132355 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/proxmox.yml with ini
+plugin: Invalid host pattern 'plugin:' supplied, ending in ':' is not allowed, this
+character is reserved to provide a port.
+
+2025-05-18 16:27:12,686 p=4132355 u=ubuntu n=ansible WARNING| [WARNING]: Unable to parse /home/ubuntu/.ansible/inventory/proxmox.yml as an inventory
+source
+
+2025-05-18 16:27:12,692 p=4132355 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/proxmox_test.yml with auto
+plugin: inventory source '/home/ubuntu/.ansible/inventory/proxmox_test.yml' could not be
+verified by inventory plugin 'community.general.proxmox'
+
+2025-05-18 16:27:12,693 p=4132355 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/proxmox_test.yml with yaml
+plugin: Plugin configuration YAML file, not YAML inventory
+
+2025-05-18 16:27:12,693 p=4132355 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/proxmox_test.yml with ini
+plugin: Invalid host pattern 'plugin:' supplied, ending in ':' is not allowed, this
+character is reserved to provide a port.
+
+2025-05-18 16:27:12,693 p=4132355 u=ubuntu n=ansible WARNING| [WARNING]: Unable to parse /home/ubuntu/.ansible/inventory/proxmox_test.yml as an
+inventory source
+
+2025-05-18 16:27:12,816 p=4132355 u=ubuntu n=ansible INFO|  _________________________________________
+< PLAY [List Proxmox VMs using API Token] >
+ -----------------------------------------
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+
+
+2025-05-18 16:27:12,848 p=4132355 u=ubuntu n=ansible INFO|  __________________________________
+< TASK [Display token information] >
+ ----------------------------------
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+
+
+2025-05-18 16:27:12,871 p=4132355 u=ubuntu n=ansible INFO| ok: [localhost] => {
+    "msg": [
+        "Using token ID: ansible-automation",
+        "Token value length: 36 characters"
+    ]
+}
+2025-05-18 16:27:12,897 p=4132355 u=ubuntu n=ansible INFO|  ______________________
+< TASK [Get node list] >
+ ----------------------
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+
+
+2025-05-18 16:27:13,468 p=4132355 u=ubuntu n=ansible INFO| ok: [localhost]
+2025-05-18 16:27:13,493 p=4132355 u=ubuntu n=ansible INFO|  ______________________
+< TASK [Display nodes] >
+ ----------------------
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+
+
+2025-05-18 16:27:13,511 p=4132355 u=ubuntu n=ansible INFO| ok: [localhost] => {
+    "node_result.json.data": [
+        {
+            "cpu": 0.020039100684262,
+            "disk": 20817203200,
+            "id": "node/proxmox",
+            "level": "",
+            "maxcpu": 4,
+            "maxdisk": 60976705536,
+            "maxmem": 33522892800,
+            "mem": 11420512256,
+            "node": "proxmox",
+            "ssl_fingerprint": "7C:9F:89:97:B5:E2:26:72:FB:8E:21:19:F5:17:5C:0D:87:F7:02:22:7E:C6:1C:27:C6:28:F2:C0:70:E7:67:E6",
+            "status": "online",
+            "type": "node",
+            "uptime": 4623315
+        },
+        {
+            "cpu": 0.0544193997720653,
+            "disk": 42765889536,
+            "id": "node/zero-cool",
+            "level": "",
+            "maxcpu": 32,
+            "maxdisk": 82630385664,
+            "maxmem": 202763837440,
+            "mem": 97087135744,
+            "node": "zero-cool",
+            "ssl_fingerprint": "B4:62:AD:B4:98:4C:1C:B8:2D:F2:47:59:CB:DE:37:1E:66:41:97:9B:E3:86:07:7D:6A:83:28:13:FD:CC:2B:E6",
+            "status": "online",
+            "type": "node",
+            "uptime": 1877069
+        },
+        {
+            "cpu": 0.016093953892997,
+            "disk": 19089485824,
+            "id": "node/technologic",
+            "level": "",
+            "maxcpu": 24,
+            "maxdisk": 58598735872,
+            "maxmem": 152069222400,
+            "mem": 64690524160,
+            "node": "technologic",
+            "ssl_fingerprint": "6D:D5:0F:34:E1:2B:FD:83:5F:1E:A9:7B:6D:0A:5B:8E:A4:FA:D1:94:42:E9:F5:62:AC:E1:E6:83:81:B5:1B:67",
+            "status": "online",
+            "type": "node",
+            "uptime": 5406475
+        },
+        {
+            "cpu": 0.118660758247169,
+            "disk": 22426824704,
+            "id": "node/thrasher",
+            "level": "",
+            "maxcpu": 12,
+            "maxdisk": 100861726720,
+            "maxmem": 33595908096,
+            "mem": 27127205888,
+            "node": "thrasher",
+            "ssl_fingerprint": "CD:10:AA:03:8B:DD:C4:3A:3F:D1:B7:FE:F4:DA:05:09:61:91:64:58:78:D2:C9:AB:87:F0:5E:C9:B2:B3:BF:BB",
+            "status": "online",
+            "type": "node",
+            "uptime": 4623220
+        },
+        {
+            "cpu": 0.0414797868817916,
+            "disk": 13484163072,
+            "id": "node/monty",
+            "level": "",
+            "maxcpu": 32,
+            "maxdisk": 122709868544,
+            "maxmem": 405703557120,
+            "mem": 226224300032,
+            "node": "monty",
+            "ssl_fingerprint": "4C:22:56:8E:88:3C:96:79:37:B2:13:45:97:2B:75:58:76:81:42:F8:88:1A:04:07:2B:74:70:8B:66:6B:C7:7A",
+            "status": "online",
+            "type": "node",
+            "uptime": 2990483
+        }
+    ]
+}
+2025-05-18 16:27:13,536 p=4132355 u=ubuntu n=ansible INFO|  __________________________________
+< TASK [Get VM list for each node] >
+ ----------------------------------
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+
+
+2025-05-18 16:27:14,014 p=4132355 u=ubuntu n=ansible INFO| ok: [localhost] => (item={'cpu': 0.020039100684262, 'mem': 11420512256, 'type': 'node', 'maxcpu': 4, 'id': 'node/proxmox', 'status': 'online', 'node': 'proxmox', 'uptime': 4623315, 'maxmem': 33522892800, 'level': '', 'disk': 20817203200, 'ssl_fingerprint': '7C:9F:89:97:B5:E2:26:72:FB:8E:21:19:F5:17:5C:0D:87:F7:02:22:7E:C6:1C:27:C6:28:F2:C0:70:E7:67:E6', 'maxdisk': 60976705536})
+2025-05-18 16:27:14,506 p=4132355 u=ubuntu n=ansible INFO| ok: [localhost] => (item={'ssl_fingerprint': 'B4:62:AD:B4:98:4C:1C:B8:2D:F2:47:59:CB:DE:37:1E:66:41:97:9B:E3:86:07:7D:6A:83:28:13:FD:CC:2B:E6', 'maxdisk': 82630385664, 'level': '', 'disk': 42765889536, 'maxmem': 202763837440, 'uptime': 1877069, 'mem': 97087135744, 'cpu': 0.0544193997720653, 'node': 'zero-cool', 'status': 'online', 'id': 'node/zero-cool', 'maxcpu': 32, 'type': 'node'})
+2025-05-18 16:27:15,015 p=4132355 u=ubuntu n=ansible INFO| ok: [localhost] => (item={'id': 'node/technologic', 'maxcpu': 24, 'type': 'node', 'node': 'technologic', 'status': 'online', 'cpu': 0.016093953892997, 'mem': 64690524160, 'uptime': 5406475, 'maxmem': 152069222400, 'maxdisk': 58598735872, 'ssl_fingerprint': '6D:D5:0F:34:E1:2B:FD:83:5F:1E:A9:7B:6D:0A:5B:8E:A4:FA:D1:94:42:E9:F5:62:AC:E1:E6:83:81:B5:1B:67', 'disk': 19089485824, 'level': ''})
+2025-05-18 16:27:15,622 p=4132355 u=ubuntu n=ansible INFO| ok: [localhost] => (item={'node': 'thrasher', 'status': 'online', 'id': 'node/thrasher', 'maxcpu': 12, 'type': 'node', 'mem': 27127205888, 'cpu': 0.118660758247169, 'ssl_fingerprint': 'CD:10:AA:03:8B:DD:C4:3A:3F:D1:B7:FE:F4:DA:05:09:61:91:64:58:78:D2:C9:AB:87:F0:5E:C9:B2:B3:BF:BB', 'maxdisk': 100861726720, 'level': '', 'disk': 22426824704, 'uptime': 4623220, 'maxmem': 33595908096})
+2025-05-18 16:27:26,018 p=4132355 u=ubuntu n=ansible INFO| failed: [localhost] (item={'uptime': 2990483, 'maxmem': 405703557120, 'disk': 13484163072, 'level': '', 'maxdisk': 122709868544, 'ssl_fingerprint': '4C:22:56:8E:88:3C:96:79:37:B2:13:45:97:2B:75:58:76:81:42:F8:88:1A:04:07:2B:74:70:8B:66:6B:C7:7A', 'cpu': 0.0414797868817916, 'mem': 226224300032, 'maxcpu': 32, 'type': 'node', 'id': 'node/monty', 'status': 'online', 'node': 'monty'}) => {"ansible_loop_var": "item", "changed": false, "elapsed": 10, "item": {"cpu": 0.0414797868817916, "disk": 13484163072, "id": "node/monty", "level": "", "maxcpu": 32, "maxdisk": 122709868544, "maxmem": 405703557120, "mem": 226224300032, "node": "monty", "ssl_fingerprint": "4C:22:56:8E:88:3C:96:79:37:B2:13:45:97:2B:75:58:76:81:42:F8:88:1A:04:07:2B:74:70:8B:66:6B:C7:7A", "status": "online", "type": "node", "uptime": 2990483}, "msg": "Status code was -1 and not [200, 404]: Connection failure: The read operation timed out", "redirected": false, "status": -1, "url": "https://192.168.1.47:8006/api2/json/nodes/monty/qemu"}
+2025-05-18 16:27:26,022 p=4132355 u=ubuntu n=ansible INFO| ...ignoring
+2025-05-18 16:27:26,049 p=4132355 u=ubuntu n=ansible INFO|  ____________________________
+< TASK [Display VMs by node] >
+ ----------------------------
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+
+
+2025-05-18 16:27:26,104 p=4132355 u=ubuntu n=ansible INFO| ok: [localhost] => (item={'redirected': False, 'url': 'https://192.168.1.47:8006/api2/json/nodes/proxmox/qemu', 'status': 200, 'cache_control': 'max-age=0', 'connection': 'close', 'date': 'Sun, 18 May 2025 16:27:13 GMT', 'pragma': 'no-cache', 'server': 'pve-api-daemon/3.0', 'content_length': '3512', 'content_type': 'application/json;charset=UTF-8', 'expires': 'Sun, 18 May 2025 16:27:13 GMT', 'cookies_string': '', 'cookies': {}, 'msg': 'OK (3512 bytes)', 'elapsed': 0, 'changed': False, 'json': {'data': [{'maxmem': 17179869184, 'cpus': 4, 'cpu': 0, 'mem': 0, 'netin': 0, 'disk': 0, 'uptime': 0, 'status': 'stopped', 'maxdisk': 107374182400, 'diskread': 0, 'diskwrite': 0, 'netout': 0, 'name': 'andrewsCUDAHELL', 'vmid': 146}, {'maxmem': 8388608000, 'cpus': 4, 'balloon_min': 4294967296, 'cpu': 0, 'mem': 0, 'tags': 'api', 'netin': 0, 'disk': 0, 'maxdisk': 34359738368, 'uptime': 0, 'status': 'stopped', 'shares': 1000, 'name': 'Calibre', 'diskread': 0, 'diskwrite': 0, 'netout': 0, 'vmid': 127}, {'netout': 0, 'diskwrite': 0, 'diskread': 0, 'name': 'cpuWinMinerBackUp', 'vmid': 120, 'status': 'stopped', 'uptime': 0, 'maxdisk': 34359738368, 'mem': 0, 'disk': 0, 'netin': 0, 'cpus': 4, 'maxmem': 17448304640, 'cpu': 0}, {'cpus': 4, 'maxmem': 17179869184, 'cpu': 0, 'mem': 0, 'tags': 'back_magic', 'netin': 0, 'disk': 0, 'maxdisk': 107374182400, 'status': 'stopped', 'uptime': 0, 'name': 'workingCuda', 'diskwrite': 0, 'diskread': 0, 'netout': 0, 'vmid': 147}, {'vmid': 103, 'name': 'tegam1.12.2022', 'diskwrite': 0, 'diskread': 0, 'netout': 0, 'maxdisk': 34359738368, 'uptime': 0, 'status': 'stopped', 'netin': 0, 'disk': 0, 'mem': 0, 'cpu': 0, 'maxmem': 4294967296, 'cpus': 4}, {'name': 'ineed2pBackup', 'shares': 1000, 'netout': 0, 'diskread': 0, 'diskwrite': 0, 'vmid': 141, 'maxdisk': 64424509440, 'status': 'stopped', 'uptime': 0, 'mem': 0, 'disk': 0, 'netin': 0, 'maxmem': 25769803776, 'cpus': 4, 'balloon_min': 536870912, 'cpu': 0}, {'name': 'cpuWimk80', 'netout': 0, 'diskread': 0, 'diskwrite': 0, 'vmid': 125, 'maxdisk': 42949672960, 'uptime': 0, 'status': 'stopped', 'mem': 0, 'tags': 'back_magic', 'disk': 0, 'netin': 0, 'maxmem': 8388608000, 'cpus': 4, 'cpu': 0}, {'cpu': 0, 'cpus': 4, 'maxmem': 13589544960, 'netin': 0, 'disk': 0, 'mem': 0, 'maxdisk': 68719476736, 'uptime': 0, 'status': 'stopped', 'vmid': 121, 'name': 'cpuWinMiner', 'diskwrite': 0, 'diskread': 0, 'netout': 0}, {'disk': 0, 'netin': 0, 'mem': 0, 'cpu': 0, 'cpus': 4, 'maxmem': 6291456000, 'vmid': 101, 'name': 'Galactica', 'netout': 0, 'diskread': 0, 'diskwrite': 0, 'maxdisk': 42949672960, 'status': 'stopped', 'uptime': 0}, {'vmid': 123, 'name': 'Copy-of-VM-freshWindows', 'diskread': 0, 'diskwrite': 0, 'netout': 0, 'maxdisk': 34359738368, 'status': 'stopped', 'uptime': 0, 'netin': 0, 'disk': 0, 'mem': 0, 'cpu': 0, 'cpus': 4, 'maxmem': 4294967296}, {'mem': 0, 'netin': 0, 'disk': 0, 'tags': 'back_magic', 'maxmem': 17616076800, 'cpus': 4, 'cpu': 0, 'diskread': 0, 'diskwrite': 0, 'netout': 0, 'name': 'nestedXP', 'vmid': 114, 'status': 'stopped', 'uptime': 0, 'maxdisk': 34359738368}, {'vmid': 100, 'name': 'cudahell07102022', 'netout': 0, 'diskread': 0, 'diskwrite': 0, 'maxdisk': 107374182400, 'status': 'stopped', 'uptime': 0, 'tags': 'back_magic;do_not_touch', 'disk': 0, 'netin': 0, 'mem': 0, 'cpu': 0, 'maxmem': 17179869184, 'cpus': 4}, {'status': 'stopped', 'uptime': 0, 'maxdisk': 0, 'vmid': 102, 'lock': 'clone', 'diskread': 0, 'diskwrite': 0, 'netout': 0, 'name': 'VM 102', 'cpu': 0, 'maxmem': 536870912, 'cpus': 1, 'netin': 0, 'disk': 0, 'mem': 0}, {'maxdisk': 55834574848, 'uptime': 0, 'status': 'stopped', 'vmid': 130, 'shares': 1000, 'name': 'yeedauggold', 'diskread': 0, 'diskwrite': 0, 'netout': 0, 'balloon_min': 50331648000, 'cpu': 0, 'cpus': 4, 'maxmem': 100663296000, 'netin': 0, 'disk': 0, 'mem': 0}, {'netin': 0, 'disk': 0, 'mem': 0, 'cpu': 0, 'maxmem': 17179869184, 'cpus': 4, 'vmid': 110, 'diskread': 0, 'diskwrite': 0, 'netout': 0, 'name': 'poposCudaworkingbackup', 'status': 'stopped', 'uptime': 0, 'maxdisk': 107374182400}, {'vmid': 111, 'name': 'winMiner2', 'netout': 0, 'diskread': 0, 'diskwrite': 0, 'maxdisk': 53687091200, 'uptime': 0, 'status': 'stopped', 'disk': 0, 'netin': 0, 'mem': 0, 'cpu': 0, 'cpus': 4, 'maxmem': 8925478912}, {'disk': 0, 'netin': 0, 'mem': 0, 'balloon_min': 536870912, 'cpu': 0, 'maxmem': 34359738368, 'cpus': 4, 'vmid': 136, 'name': 'GolemBackup', 'shares': 1000, 'netout': 0, 'diskread': 0, 'diskwrite': 0, 'maxdisk': 107374182400, 'status': 'stopped', 'uptime': 0}]}, 'invocation': {'module_args': {'url': 'https://192.168.1.47:8006/api2/json/nodes/proxmox/qemu', 'method': 'GET', 'validate_certs': False, 'headers': {'Authorization': 'PVEAPIToken=root@pam!ansible-automation=65935f57-cc2a-49fe-b536-8139e1c79bbc'}, 'timeout': 10, 'status_code': [200, 404], 'force': False, 'http_agent': 'ansible-httpget', 'use_proxy': True, 'force_basic_auth': False, 'use_gssapi': False, 'body_format': 'raw', 'return_content': False, 'follow_redirects': 'safe', 'remote_src': False, 'unredirected_headers': [], 'decompress': True, 'use_netrc': True, 'unsafe_writes': False, 'url_username': None, 'url_password': None, 'client_cert': None, 'client_key': None, 'dest': None, 'body': None, 'src': None, 'creates': None, 'removes': None, 'unix_socket': None, 'ca_path': None, 'ciphers': None, 'mode': None, 'owner': None, 'group': None, 'seuser': None, 'serole': None, 'selevel': None, 'setype': None, 'attributes': None}}, 'failed': False, 'item': {'cpu': 0.020039100684262, 'mem': 11420512256, 'type': 'node', 'maxcpu': 4, 'id': 'node/proxmox', 'status': 'online', 'node': 'proxmox', 'uptime': 4623315, 'maxmem': 33522892800, 'level': '', 'disk': 20817203200, 'ssl_fingerprint': '7C:9F:89:97:B5:E2:26:72:FB:8E:21:19:F5:17:5C:0D:87:F7:02:22:7E:C6:1C:27:C6:28:F2:C0:70:E7:67:E6', 'maxdisk': 60976705536}, 'ansible_loop_var': 'item'}) => {
+    "msg": "Node proxmox VMs: ['andrewsCUDAHELL', 'Calibre', 'cpuWinMinerBackUp', 'workingCuda', 'tegam1.12.2022', 'ineed2pBackup', 'cpuWimk80', 'cpuWinMiner', 'Galactica', 'Copy-of-VM-freshWindows', 'nestedXP', 'cudahell07102022', 'VM 102', 'yeedauggold', 'poposCudaworkingbackup', 'winMiner2', 'GolemBackup']"
+}
+2025-05-18 16:27:26,116 p=4132355 u=ubuntu n=ansible INFO| ok: [localhost] => (item={'redirected': False, 'url': 'https://192.168.1.47:8006/api2/json/nodes/zero-cool/qemu', 'status': 200, 'cache_control': 'max-age=0', 'connection': 'close', 'date': 'Sun, 18 May 2025 16:27:14 GMT', 'pragma': 'no-cache', 'server': 'pve-api-daemon/3.0', 'content_length': '1472', 'content_type': 'application/json;charset=UTF-8', 'expires': 'Sun, 18 May 2025 16:27:14 GMT', 'cookies_string': '', 'cookies': {}, 'msg': 'OK (1472 bytes)', 'elapsed': 0, 'changed': False, 'json': {'data': [{'uptime': 0, 'maxdisk': 0, 'cpus': 1, 'mem': 0, 'status': 'stopped', 'diskread': 0, 'name': 'VM-Guest', 'disk': 0, 'netin': 0, 'maxmem': 2147483648, 'netout': 0, 'cpu': 0, 'diskwrite': 0, 'vmid': 9999}, {'cpu': 0.0375839156852459, 'netout': 105557876, 'balloon_min': 8388608000, 'vmid': 1001, 'diskwrite': 0, 'shares': 1000, 'cpus': 28, 'maxdisk': 734439407616, 'uptime': 1877027, 'tags': 'softwaredev;windows', 'netin': 665411111, 'maxmem': 67108864000, 'name': 'WinDeath', 'diskread': 0, 'disk': 0, 'status': 'running', 'pid': 2469, 'mem': 64061419798}, {'status': 'running', 'pid': 2690, 'mem': 16516793258, 'netin': 670816405, 'maxmem': 33554432000, 'diskread': 0, 'name': 'GitLab-Testing', 'disk': 0, 'uptime': 1877020, 'tags': 'bughunting;ubuntu;gitlab;network_analysis', 'cpus': 30, 'maxdisk': 51539607552, 'shares': 1000, 'vmid': 1337, 'diskwrite': 0, 'balloon_min': 4194304000, 'cpu': 0.0129822968166947, 'netout': 9862161}, {'maxdisk': 107374182400, 'cpus': 16, 'tags': 'back_magic;do_not_touch', 'uptime': 1877034, 'disk': 0, 'diskread': 0, 'name': 'VM 144', 'maxmem': 10737418240, 'netin': 571315018, 'mem': 2561466374, 'pid': 2316, 'status': 'running', 'netout': 133530097, 'cpu': 0.00243550429676981, 'balloon_min': 536870912, 'diskwrite': 0, 'vmid': 144, 'shares': 1000}, {'tags': 'softwaredev;storage;testing', 'uptime': 1877014, 'maxdisk': 137438953472, 'cpus': 32, 'mem': 1624246007, 'pid': 2905, 'status': 'running', 'disk': 0, 'name': 'CodeServ', 'diskread': 0, 'maxmem': 67108864000, 'netin': 60, 'balloon_min': 8388608000, 'netout': 0, 'cpu': 0.00301790749817128, 'shares': 1000, 'diskwrite': 0, 'vmid': 2001}]}, 'invocation': {'module_args': {'url': 'https://192.168.1.47:8006/api2/json/nodes/zero-cool/qemu', 'method': 'GET', 'validate_certs': False, 'headers': {'Authorization': 'PVEAPIToken=root@pam!ansible-automation=65935f57-cc2a-49fe-b536-8139e1c79bbc'}, 'timeout': 10, 'status_code': [200, 404], 'force': False, 'http_agent': 'ansible-httpget', 'use_proxy': True, 'force_basic_auth': False, 'use_gssapi': False, 'body_format': 'raw', 'return_content': False, 'follow_redirects': 'safe', 'remote_src': False, 'unredirected_headers': [], 'decompress': True, 'use_netrc': True, 'unsafe_writes': False, 'url_username': None, 'url_password': None, 'client_cert': None, 'client_key': None, 'dest': None, 'body': None, 'src': None, 'creates': None, 'removes': None, 'unix_socket': None, 'ca_path': None, 'ciphers': None, 'mode': None, 'owner': None, 'group': None, 'seuser': None, 'serole': None, 'selevel': None, 'setype': None, 'attributes': None}}, 'failed': False, 'item': {'ssl_fingerprint': 'B4:62:AD:B4:98:4C:1C:B8:2D:F2:47:59:CB:DE:37:1E:66:41:97:9B:E3:86:07:7D:6A:83:28:13:FD:CC:2B:E6', 'maxdisk': 82630385664, 'level': '', 'disk': 42765889536, 'maxmem': 202763837440, 'uptime': 1877069, 'mem': 97087135744, 'cpu': 0.0544193997720653, 'node': 'zero-cool', 'status': 'online', 'id': 'node/zero-cool', 'maxcpu': 32, 'type': 'node'}, 'ansible_loop_var': 'item'}) => {
+    "msg": "Node zero-cool VMs: ['VM-Guest', 'WinDeath', 'GitLab-Testing', 'VM 144', 'CodeServ']"
+}
+2025-05-18 16:27:26,129 p=4132355 u=ubuntu n=ansible INFO| ok: [localhost] => (item={'redirected': False, 'url': 'https://192.168.1.47:8006/api2/json/nodes/technologic/qemu', 'status': 200, 'cache_control': 'max-age=0', 'connection': 'close', 'date': 'Sun, 18 May 2025 16:27:14 GMT', 'pragma': 'no-cache', 'server': 'pve-api-daemon/3.0', 'content_length': '2111', 'content_type': 'application/json;charset=UTF-8', 'expires': 'Sun, 18 May 2025 16:27:14 GMT', 'cookies_string': '', 'cookies': {}, 'msg': 'OK (2111 bytes)', 'elapsed': 0, 'changed': False, 'json': {'data': [{'diskwrite': 0, 'balloon_min': 536870912, 'mem': 0, 'status': 'stopped', 'name': 'gpt4allvm', 'maxdisk': 34359738368, 'shares': 1000, 'cpus': 15, 'netin': 0, 'maxmem': 4294967296, 'disk': 0, 'netout': 0, 'diskread': 0, 'cpu': 0, 'vmid': 137, 'uptime': 0}, {'status': 'running', 'name': 'winrip1', 'diskwrite': 0, 'mem': 3465913472, 'pid': 871052, 'netin': 3873741839, 'maxmem': 4294967296, 'disk': 0, 'netout': 11482227717, 'diskread': 0, 'cpu': 0.0171985251266667, 'vmid': 145, 'uptime': 4212527, 'maxdisk': 51539607552, 'cpus': 4}, {'uptime': 0, 'cpu': 0, 'vmid': 132, 'name': 'winripBackup', 'status': 'stopped', 'netout': 0, 'diskread': 0, 'netin': 0, 'maxmem': 4294967296, 'disk': 0, 'cpus': 4, 'mem': 0, 'maxdisk': 51539607552, 'diskwrite': 0}, {'name': 'haosova-6.4', 'status': 'stopped', 'mem': 0, 'balloon_min': 536870912, 'diskwrite': 0, 'cpu': 0, 'vmid': 148, 'uptime': 0, 'maxmem': 8589934592, 'disk': 0, 'netin': 0, 'diskread': 0, 'netout': 0, 'shares': 1000, 'cpus': 24, 'serial': 1, 'maxdisk': 0}, {'diskwrite': 0, 'mem': 0, 'balloon_min': 4294967296, 'status': 'stopped', 'name': 'honeyGain', 'maxdisk': 34359738368, 'cpus': 4, 'shares': 1000, 'netin': 0, 'maxmem': 8489271296, 'disk': 0, 'netout': 0, 'diskread': 0, 'cpu': 0, 'vmid': 149, 'uptime': 0}, {'diskwrite': 0, 'mem': 0, 'balloon_min': 536870912, 'status': 'stopped', 'name': 'golemscooby', 'maxdisk': 107374182400, 'shares': 1000, 'cpus': 8, 'maxmem': 34359738368, 'disk': 0, 'netin': 0, 'diskread': 0, 'netout': 0, 'vmid': 150, 'cpu': 0, 'uptime': 0}, {'uptime': 4212534, 'vmid': 139, 'cpu': 0.0174101992820719, 'diskread': 0, 'netout': 25585559517, 'maxmem': 4294967296, 'disk': 0, 'netin': 4037139938, 'pid': 870923, 'cpus': 4, 'maxdisk': 51539607552, 'status': 'running', 'name': 'winrip2', 'mem': 3489316369, 'diskwrite': 0}, {'name': 'TeenageMutantNinjaTunnel', 'status': 'running', 'mem': 695529142, 'diskwrite': 0, 'uptime': 5406362, 'cpu': 0.0378896738175181, 'vmid': 129, 'netout': 62463007911, 'diskread': 0, 'netin': 65731440164, 'pid': 4041, 'disk': 0, 'maxmem': 1073741824, 'cpus': 1, 'maxdisk': 26843545600}, {'mem': 3471170198, 'diskwrite': 0, 'name': 'winrip', 'status': 'running', 'cpus': 4, 'maxdisk': 51539607552, 'uptime': 4212538, 'cpu': 0.0202148818411898, 'vmid': 142, 'diskread': 0, 'netout': 28913487460, 'maxmem': 4294967296, 'disk': 0, 'pid': 870772, 'netin': 4089203980}]}, 'invocation': {'module_args': {'url': 'https://192.168.1.47:8006/api2/json/nodes/technologic/qemu', 'method': 'GET', 'validate_certs': False, 'headers': {'Authorization': 'PVEAPIToken=root@pam!ansible-automation=65935f57-cc2a-49fe-b536-8139e1c79bbc'}, 'timeout': 10, 'status_code': [200, 404], 'force': False, 'http_agent': 'ansible-httpget', 'use_proxy': True, 'force_basic_auth': False, 'use_gssapi': False, 'body_format': 'raw', 'return_content': False, 'follow_redirects': 'safe', 'remote_src': False, 'unredirected_headers': [], 'decompress': True, 'use_netrc': True, 'unsafe_writes': False, 'url_username': None, 'url_password': None, 'client_cert': None, 'client_key': None, 'dest': None, 'body': None, 'src': None, 'creates': None, 'removes': None, 'unix_socket': None, 'ca_path': None, 'ciphers': None, 'mode': None, 'owner': None, 'group': None, 'seuser': None, 'serole': None, 'selevel': None, 'setype': None, 'attributes': None}}, 'failed': False, 'item': {'id': 'node/technologic', 'maxcpu': 24, 'type': 'node', 'node': 'technologic', 'status': 'online', 'cpu': 0.016093953892997, 'mem': 64690524160, 'uptime': 5406475, 'maxmem': 152069222400, 'maxdisk': 58598735872, 'ssl_fingerprint': '6D:D5:0F:34:E1:2B:FD:83:5F:1E:A9:7B:6D:0A:5B:8E:A4:FA:D1:94:42:E9:F5:62:AC:E1:E6:83:81:B5:1B:67', 'disk': 19089485824, 'level': ''}, 'ansible_loop_var': 'item'}) => {
+    "msg": "Node technologic VMs: ['gpt4allvm', 'winrip1', 'winripBackup', 'haosova-6.4', 'honeyGain', 'golemscooby', 'winrip2', 'TeenageMutantNinjaTunnel', 'winrip']"
+}
+2025-05-18 16:27:26,139 p=4132355 u=ubuntu n=ansible INFO| ok: [localhost] => (item={'redirected': False, 'url': 'https://192.168.1.47:8006/api2/json/nodes/thrasher/qemu', 'status': 200, 'cache_control': 'max-age=0', 'connection': 'close', 'date': 'Sun, 18 May 2025 16:27:15 GMT', 'pragma': 'no-cache', 'server': 'pve-api-daemon/3.0', 'content_length': '611', 'content_type': 'application/json;charset=UTF-8', 'expires': 'Sun, 18 May 2025 16:27:15 GMT', 'cookies_string': '', 'cookies': {}, 'msg': 'OK (611 bytes)', 'elapsed': 0, 'changed': False, 'json': {'data': [{'name': 'ineed2p', 'pid': 2899078, 'shares': 1000, 'diskwrite': 0, 'uptime': 4161134, 'maxmem': 25769803776, 'status': 'running', 'cpu': 0.136329230840056, 'cpus': 12, 'vmid': 108, 'mem': 9867193583, 'netout': 12093668197653, 'netin': 101127436246181, 'diskread': 0, 'tags': 'back_magic;do_not_touch', 'balloon_min': 536870912, 'maxdisk': 123480309760, 'disk': 0}, {'maxdisk': 107374182400, 'disk': 0, 'diskread': 0, 'balloon_min': 536870912, 'mem': 7118922577, 'netout': 6945579191, 'netin': 16212354163, 'name': 'ecoGolem', 'pid': 1797, 'shares': 1000, 'diskwrite': 0, 'uptime': 4623164, 'maxmem': 32505856000, 'status': 'running', 'cpu': 0, 'vmid': 106, 'cpus': 11}]}, 'invocation': {'module_args': {'url': 'https://192.168.1.47:8006/api2/json/nodes/thrasher/qemu', 'method': 'GET', 'validate_certs': False, 'headers': {'Authorization': 'PVEAPIToken=root@pam!ansible-automation=65935f57-cc2a-49fe-b536-8139e1c79bbc'}, 'timeout': 10, 'status_code': [200, 404], 'force': False, 'http_agent': 'ansible-httpget', 'use_proxy': True, 'force_basic_auth': False, 'use_gssapi': False, 'body_format': 'raw', 'return_content': False, 'follow_redirects': 'safe', 'remote_src': False, 'unredirected_headers': [], 'decompress': True, 'use_netrc': True, 'unsafe_writes': False, 'url_username': None, 'url_password': None, 'client_cert': None, 'client_key': None, 'dest': None, 'body': None, 'src': None, 'creates': None, 'removes': None, 'unix_socket': None, 'ca_path': None, 'ciphers': None, 'mode': None, 'owner': None, 'group': None, 'seuser': None, 'serole': None, 'selevel': None, 'setype': None, 'attributes': None}}, 'failed': False, 'item': {'node': 'thrasher', 'status': 'online', 'id': 'node/thrasher', 'maxcpu': 12, 'type': 'node', 'mem': 27127205888, 'cpu': 0.118660758247169, 'ssl_fingerprint': 'CD:10:AA:03:8B:DD:C4:3A:3F:D1:B7:FE:F4:DA:05:09:61:91:64:58:78:D2:C9:AB:87:F0:5E:C9:B2:B3:BF:BB', 'maxdisk': 100861726720, 'level': '', 'disk': 22426824704, 'uptime': 4623220, 'maxmem': 33595908096}, 'ansible_loop_var': 'item'}) => {
+    "msg": "Node thrasher VMs: ['ineed2p', 'ecoGolem']"
+}
+2025-05-18 16:27:26,145 p=4132355 u=ubuntu n=ansible INFO| skipping: [localhost] => (item={'redirected': False, 'url': 'https://192.168.1.47:8006/api2/json/nodes/monty/qemu', 'status': -1, 'elapsed': 10, 'changed': False, 'failed': True, 'msg': 'Status code was -1 and not [200, 404]: Connection failure: The read operation timed out', 'invocation': {'module_args': {'url': 'https://192.168.1.47:8006/api2/json/nodes/monty/qemu', 'method': 'GET', 'validate_certs': False, 'headers': {'Authorization': 'PVEAPIToken=root@pam!ansible-automation=65935f57-cc2a-49fe-b536-8139e1c79bbc'}, 'timeout': 10, 'status_code': [200, 404], 'force': False, 'http_agent': 'ansible-httpget', 'use_proxy': True, 'force_basic_auth': False, 'use_gssapi': False, 'body_format': 'raw', 'return_content': False, 'follow_redirects': 'safe', 'remote_src': False, 'unredirected_headers': [], 'decompress': True, 'use_netrc': True, 'unsafe_writes': False, 'url_username': None, 'url_password': None, 'client_cert': None, 'client_key': None, 'dest': None, 'body': None, 'src': None, 'creates': None, 'removes': None, 'unix_socket': None, 'ca_path': None, 'ciphers': None, 'mode': None, 'owner': None, 'group': None, 'seuser': None, 'serole': None, 'selevel': None, 'setype': None, 'attributes': None}}, 'item': {'uptime': 2990483, 'maxmem': 405703557120, 'disk': 13484163072, 'level': '', 'maxdisk': 122709868544, 'ssl_fingerprint': '4C:22:56:8E:88:3C:96:79:37:B2:13:45:97:2B:75:58:76:81:42:F8:88:1A:04:07:2B:74:70:8B:66:6B:C7:7A', 'cpu': 0.0414797868817916, 'mem': 226224300032, 'maxcpu': 32, 'type': 'node', 'id': 'node/monty', 'status': 'online', 'node': 'monty'}, 'ansible_loop_var': 'item'}) 
+2025-05-18 16:27:26,178 p=4132355 u=ubuntu n=ansible INFO|  ________________________
+< TASK [Display summary] >
+ ------------------------
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+
+
+2025-05-18 16:27:26,194 p=4132355 u=ubuntu n=ansible INFO| ok: [localhost] => {
+    "msg": "Found VMs across 5 nodes"
+}
+2025-05-18 16:27:26,220 p=4132355 u=ubuntu n=ansible INFO|  ___________________________
+< TASK [Calculate VM count] >
+ ---------------------------
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+
+
+2025-05-18 16:27:26,245 p=4132355 u=ubuntu n=ansible INFO| ok: [localhost]
+2025-05-18 16:27:26,269 p=4132355 u=ubuntu n=ansible INFO|  _________________________
+< TASK [Display VM count] >
+ -------------------------
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+
+
+2025-05-18 16:27:26,282 p=4132355 u=ubuntu n=ansible INFO| ok: [localhost] => {
+    "msg": "Total VM count: 33"
+}
+2025-05-18 16:27:26,307 p=4132355 u=ubuntu n=ansible INFO|  ____________
+< PLAY RECAP >
+ ------------
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+
+
+2025-05-18 16:27:26,308 p=4132355 u=ubuntu n=ansible INFO| localhost                  : ok=8    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=1   
+2025-05-18 16:28:09,001 p=4132986 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/proxmox-token.yml with auto
+plugin: inventory source '/home/ubuntu/.ansible/inventory/proxmox-token.yml' could not be
+verified by inventory plugin 'community.general.proxmox'
+
+2025-05-18 16:28:09,001 p=4132986 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/proxmox-token.yml with yaml
+plugin: Plugin configuration YAML file, not YAML inventory
+
+2025-05-18 16:28:09,001 p=4132986 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/proxmox-token.yml with ini
+plugin: Invalid host pattern 'plugin:' supplied, ending in ':' is not allowed, this
+character is reserved to provide a port.
+
+2025-05-18 16:28:09,001 p=4132986 u=ubuntu n=ansible WARNING| [WARNING]: Unable to parse /home/ubuntu/.ansible/inventory/proxmox-token.yml as an
+inventory source
+
+2025-05-18 16:28:09,001 p=4132986 u=ubuntu n=ansible WARNING| [WARNING]: No inventory was parsed, only implicit localhost is available
+
+2025-05-18 16:28:09,004 p=4132986 u=ubuntu n=ansible INFO| {
+    "_meta": {
+        "hostvars": {}
+    },
+    "all": {
+        "children": [
+            "ungrouped"
+        ]
+    }
+}
+2025-05-18 16:28:23,077 p=4133208 u=ubuntu n=ansible INFO| # /usr/lib/python3/dist-packages/ansible_collections
+Collection                               Version
+---------------------------------------- -------
+
+2025-05-18 16:28:23,078 p=4133208 u=ubuntu n=ansible INFO| amazon.aws                               9.4.0  
+2025-05-18 16:28:23,078 p=4133208 u=ubuntu n=ansible INFO| ansible.netcommon                        7.2.0  
+2025-05-18 16:28:23,078 p=4133208 u=ubuntu n=ansible INFO| ansible.posix                            1.6.2  
+2025-05-18 16:28:23,078 p=4133208 u=ubuntu n=ansible INFO| ansible.utils                            5.1.2  
+2025-05-18 16:28:23,078 p=4133208 u=ubuntu n=ansible INFO| ansible.windows                          2.8.0  
+2025-05-18 16:28:23,078 p=4133208 u=ubuntu n=ansible INFO| arista.eos                               10.1.1 
+2025-05-18 16:28:23,078 p=4133208 u=ubuntu n=ansible INFO| awx.awx                                  24.6.1 
+2025-05-18 16:28:23,078 p=4133208 u=ubuntu n=ansible INFO| azure.azcollection                       3.3.1  
+2025-05-18 16:28:23,078 p=4133208 u=ubuntu n=ansible INFO| check_point.mgmt                         6.4.0  
+2025-05-18 16:28:23,078 p=4133208 u=ubuntu n=ansible INFO| chocolatey.chocolatey                    1.5.3  
+2025-05-18 16:28:23,078 p=4133208 u=ubuntu n=ansible INFO| cisco.aci                                2.11.0 
+2025-05-18 16:28:23,078 p=4133208 u=ubuntu n=ansible INFO| cisco.asa                                6.1.0  
+2025-05-18 16:28:23,078 p=4133208 u=ubuntu n=ansible INFO| cisco.dnac                               6.31.3 
+2025-05-18 16:28:23,078 p=4133208 u=ubuntu n=ansible INFO| cisco.intersight                         2.0.20 
+2025-05-18 16:28:23,078 p=4133208 u=ubuntu n=ansible INFO| cisco.ios                                9.2.0  
+2025-05-18 16:28:23,078 p=4133208 u=ubuntu n=ansible INFO| cisco.iosxr                              10.3.1 
+2025-05-18 16:28:23,078 p=4133208 u=ubuntu n=ansible INFO| cisco.ise                                2.10.0 
+2025-05-18 16:28:23,078 p=4133208 u=ubuntu n=ansible INFO| cisco.meraki                             2.20.10
+2025-05-18 16:28:23,079 p=4133208 u=ubuntu n=ansible INFO| cisco.mso                                2.10.0 
+2025-05-18 16:28:23,079 p=4133208 u=ubuntu n=ansible INFO| cisco.nxos                               9.4.0  
+2025-05-18 16:28:23,079 p=4133208 u=ubuntu n=ansible INFO| cisco.ucs                                1.16.0 
+2025-05-18 16:28:23,079 p=4133208 u=ubuntu n=ansible INFO| cloud.common                             4.0.0  
+2025-05-18 16:28:23,079 p=4133208 u=ubuntu n=ansible INFO| cloudscale_ch.cloud                      2.4.1  
+2025-05-18 16:28:23,079 p=4133208 u=ubuntu n=ansible INFO| community.aws                            9.2.0  
+2025-05-18 16:28:23,079 p=4133208 u=ubuntu n=ansible INFO| community.ciscosmb                       1.0.10 
+2025-05-18 16:28:23,079 p=4133208 u=ubuntu n=ansible INFO| community.crypto                         2.26.0 
+2025-05-18 16:28:23,079 p=4133208 u=ubuntu n=ansible INFO| community.digitalocean                   1.27.0 
+2025-05-18 16:28:23,079 p=4133208 u=ubuntu n=ansible INFO| community.dns                            3.2.3  
+2025-05-18 16:28:23,079 p=4133208 u=ubuntu n=ansible INFO| community.docker                         4.5.2  
+2025-05-18 16:28:23,079 p=4133208 u=ubuntu n=ansible INFO| community.general                        10.6.0 
+2025-05-18 16:28:23,079 p=4133208 u=ubuntu n=ansible INFO| community.grafana                        2.1.0  
+2025-05-18 16:28:23,079 p=4133208 u=ubuntu n=ansible INFO| community.hashi_vault                    6.2.0  
+2025-05-18 16:28:23,079 p=4133208 u=ubuntu n=ansible INFO| community.hrobot                         2.2.0  
+2025-05-18 16:28:23,079 p=4133208 u=ubuntu n=ansible INFO| community.library_inventory_filtering_v1 1.1.1  
+2025-05-18 16:28:23,079 p=4133208 u=ubuntu n=ansible INFO| community.libvirt                        1.3.1  
+2025-05-18 16:28:23,079 p=4133208 u=ubuntu n=ansible INFO| community.mongodb                        1.7.9  
+2025-05-18 16:28:23,079 p=4133208 u=ubuntu n=ansible INFO| community.mysql                          3.13.0 
+2025-05-18 16:28:23,079 p=4133208 u=ubuntu n=ansible INFO| community.network                        5.1.0  
+2025-05-18 16:28:23,079 p=4133208 u=ubuntu n=ansible INFO| community.okd                            4.0.1  
+2025-05-18 16:28:23,079 p=4133208 u=ubuntu n=ansible INFO| community.postgresql                     3.14.0 
+2025-05-18 16:28:23,079 p=4133208 u=ubuntu n=ansible INFO| community.proxysql                       1.6.0  
+2025-05-18 16:28:23,079 p=4133208 u=ubuntu n=ansible INFO| community.rabbitmq                       1.4.0  
+2025-05-18 16:28:23,079 p=4133208 u=ubuntu n=ansible INFO| community.routeros                       3.6.0  
+2025-05-18 16:28:23,079 p=4133208 u=ubuntu n=ansible INFO| community.sap_libs                       1.4.2  
+2025-05-18 16:28:23,079 p=4133208 u=ubuntu n=ansible INFO| community.sops                           2.0.5  
+2025-05-18 16:28:23,080 p=4133208 u=ubuntu n=ansible INFO| community.vmware                         5.6.0  
+2025-05-18 16:28:23,080 p=4133208 u=ubuntu n=ansible INFO| community.windows                        2.4.0  
+2025-05-18 16:28:23,080 p=4133208 u=ubuntu n=ansible INFO| community.zabbix                         3.3.0  
+2025-05-18 16:28:23,080 p=4133208 u=ubuntu n=ansible INFO| containers.podman                        1.16.3 
+2025-05-18 16:28:23,080 p=4133208 u=ubuntu n=ansible INFO| cyberark.conjur                          1.3.3  
+2025-05-18 16:28:23,080 p=4133208 u=ubuntu n=ansible INFO| cyberark.pas                             1.0.30 
+2025-05-18 16:28:23,080 p=4133208 u=ubuntu n=ansible INFO| dellemc.enterprise_sonic                 2.5.1  
+2025-05-18 16:28:23,080 p=4133208 u=ubuntu n=ansible INFO| dellemc.openmanage                       9.11.0 
+2025-05-18 16:28:23,080 p=4133208 u=ubuntu n=ansible INFO| dellemc.powerflex                        2.6.0  
+2025-05-18 16:28:23,080 p=4133208 u=ubuntu n=ansible INFO| dellemc.unity                            2.0.0  
+2025-05-18 16:28:23,080 p=4133208 u=ubuntu n=ansible INFO| f5networks.f5_modules                    1.35.0 
+2025-05-18 16:28:23,080 p=4133208 u=ubuntu n=ansible INFO| fortinet.fortimanager                    2.9.1  
+2025-05-18 16:28:23,080 p=4133208 u=ubuntu n=ansible INFO| fortinet.fortios                         2.4.0  
+2025-05-18 16:28:23,080 p=4133208 u=ubuntu n=ansible INFO| google.cloud                             1.5.1  
+2025-05-18 16:28:23,080 p=4133208 u=ubuntu n=ansible INFO| grafana.grafana                          5.7.0  
+2025-05-18 16:28:23,080 p=4133208 u=ubuntu n=ansible INFO| hetzner.hcloud                           4.3.0  
+2025-05-18 16:28:23,080 p=4133208 u=ubuntu n=ansible INFO| hitachivantara.vspone_block              3.3.0  
+2025-05-18 16:28:23,080 p=4133208 u=ubuntu n=ansible INFO| ibm.qradar                               4.0.0  
+2025-05-18 16:28:23,080 p=4133208 u=ubuntu n=ansible INFO| ibm.spectrum_virtualize                  2.0.0  
+2025-05-18 16:28:23,080 p=4133208 u=ubuntu n=ansible INFO| ibm.storage_virtualize                   2.7.3  
+2025-05-18 16:28:23,080 p=4133208 u=ubuntu n=ansible INFO| ieisystem.inmanage                       3.0.0  
+2025-05-18 16:28:23,080 p=4133208 u=ubuntu n=ansible INFO| infinidat.infinibox                      1.4.5  
+2025-05-18 16:28:23,080 p=4133208 u=ubuntu n=ansible INFO| infoblox.nios_modules                    1.8.0  
+2025-05-18 16:28:23,080 p=4133208 u=ubuntu n=ansible INFO| inspur.ispim                             2.2.3  
+2025-05-18 16:28:23,080 p=4133208 u=ubuntu n=ansible INFO| junipernetworks.junos                    9.1.0  
+2025-05-18 16:28:23,080 p=4133208 u=ubuntu n=ansible INFO| kaytus.ksmanage                          2.0.0  
+2025-05-18 16:28:23,080 p=4133208 u=ubuntu n=ansible INFO| kubernetes.core                          5.2.0  
+2025-05-18 16:28:23,081 p=4133208 u=ubuntu n=ansible INFO| kubevirt.core                            2.1.0  
+2025-05-18 16:28:23,081 p=4133208 u=ubuntu n=ansible INFO| lowlydba.sqlserver                       2.6.0  
+2025-05-18 16:28:23,081 p=4133208 u=ubuntu n=ansible INFO| microsoft.ad                             1.8.1  
+2025-05-18 16:28:23,081 p=4133208 u=ubuntu n=ansible INFO| microsoft.iis                            1.0.2  
+2025-05-18 16:28:23,081 p=4133208 u=ubuntu n=ansible INFO| netapp.cloudmanager                      21.24.0
+2025-05-18 16:28:23,081 p=4133208 u=ubuntu n=ansible INFO| netapp.ontap                             22.14.0
+2025-05-18 16:28:23,081 p=4133208 u=ubuntu n=ansible INFO| netapp.storagegrid                       21.14.0
+2025-05-18 16:28:23,081 p=4133208 u=ubuntu n=ansible INFO| netapp_eseries.santricity                1.4.1  
+2025-05-18 16:28:23,081 p=4133208 u=ubuntu n=ansible INFO| netbox.netbox                            3.21.0 
+2025-05-18 16:28:23,081 p=4133208 u=ubuntu n=ansible INFO| ngine_io.cloudstack                      2.5.0  
+2025-05-18 16:28:23,081 p=4133208 u=ubuntu n=ansible INFO| openstack.cloud                          2.4.1  
+2025-05-18 16:28:23,081 p=4133208 u=ubuntu n=ansible INFO| ovirt.ovirt                              3.2.0  
+2025-05-18 16:28:23,081 p=4133208 u=ubuntu n=ansible INFO| purestorage.flasharray                   1.34.1 
+2025-05-18 16:28:23,081 p=4133208 u=ubuntu n=ansible INFO| purestorage.flashblade                   1.19.2 
+2025-05-18 16:28:23,081 p=4133208 u=ubuntu n=ansible INFO| sensu.sensu_go                           1.14.0 
+2025-05-18 16:28:23,081 p=4133208 u=ubuntu n=ansible INFO| splunk.es                                4.0.0  
+2025-05-18 16:28:23,081 p=4133208 u=ubuntu n=ansible INFO| telekom_mms.icinga_director              2.2.2  
+2025-05-18 16:28:23,081 p=4133208 u=ubuntu n=ansible INFO| theforeman.foreman                       4.2.0  
+2025-05-18 16:28:23,081 p=4133208 u=ubuntu n=ansible INFO| vmware.vmware                            1.11.0 
+2025-05-18 16:28:23,081 p=4133208 u=ubuntu n=ansible INFO| vmware.vmware_rest                       4.7.0  
+2025-05-18 16:28:23,081 p=4133208 u=ubuntu n=ansible INFO| vultr.cloud                              1.13.0 
+2025-05-18 16:28:23,081 p=4133208 u=ubuntu n=ansible INFO| vyos.vyos                                5.0.0  
+2025-05-18 16:28:23,081 p=4133208 u=ubuntu n=ansible INFO| wti.remote                               1.0.10 
+2025-05-18 16:29:25,489 p=4133976 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/proxmox.proxmox.yml with
+ansible_collections.community.general.plugins.inventory.proxmox plugin: Invalid URL
+'https://:8006/api2/json/nodes': No host supplied
+
+2025-05-18 16:29:25,489 p=4133976 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/proxmox.proxmox.yml with
+auto plugin: Invalid URL 'https://:8006/api2/json/nodes': No host supplied
+
+2025-05-18 16:29:25,489 p=4133976 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/proxmox.proxmox.yml with
+yaml plugin: Plugin configuration YAML file, not YAML inventory
+
+2025-05-18 16:29:25,490 p=4133976 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/proxmox.proxmox.yml with
+ini plugin: Invalid host pattern 'plugin:' supplied, ending in ':' is not allowed, this
+character is reserved to provide a port.
+
+2025-05-18 16:29:25,490 p=4133976 u=ubuntu n=ansible WARNING| [WARNING]: Unable to parse /home/ubuntu/.ansible/inventory/proxmox.proxmox.yml as an
+inventory source
+
+2025-05-18 16:29:25,490 p=4133976 u=ubuntu n=ansible WARNING| [WARNING]: No inventory was parsed, only implicit localhost is available
+
+2025-05-18 16:29:25,492 p=4133976 u=ubuntu n=ansible INFO| {
+    "_meta": {
+        "hostvars": {}
+    },
+    "all": {
+        "children": [
+            "ungrouped"
+        ]
+    }
+}
+2025-05-18 16:30:17,561 p=4134583 u=ubuntu n=ansible INFO| {
+    "_meta": {
+        "hostvars": {}
+    },
+    "all": {
+        "children": [
+            "ungrouped"
+        ]
+    }
+}
+2025-05-18 16:30:40,216 p=4134865 u=ubuntu n=ansible INFO| {
+    "_meta": {
+        "hostvars": {}
+    },
+    "all": {
+        "children": [
+            "ungrouped"
+        ]
+    }
+}
+2025-05-18 16:30:56,566 p=4135089 u=ubuntu n=ansible INFO| [DEPRECATION WARNING]: community.general.stackpath_compute has been deprecated.
+ The company and the service were sunset in June 2024. This feature will be 
+removed from community.general in version 11.0.0. Deprecation warnings can be 
+disabled by setting deprecation_warnings=False in ansible.cfg.
+2025-05-18 16:30:56,581 p=4135089 u=ubuntu n=ansible INFO| [DEPRECATION WARNING]: community.vmware.vmware_host_inventory has been 
+deprecated. Use vmware.vmware.esxi_hosts instead. This feature will be removed 
+from community.vmware in version 7.0.0. Deprecation warnings can be disabled by
+ setting deprecation_warnings=False in ansible.cfg.
+2025-05-18 16:30:56,608 p=4135089 u=ubuntu n=ansible INFO| [DEPRECATION WARNING]: community.vmware.vmware_vm_inventory has been 
+deprecated. Use vmware.vmware.vms instead. This feature will be removed from 
+community.vmware in version 7.0.0. Deprecation warnings can be disabled by 
+setting deprecation_warnings=False in ansible.cfg.
+2025-05-18 16:30:56,615 p=4135089 u=ubuntu n=ansible INFO| [DEPRECATION WARNING]: kubernetes.core.k8s has been deprecated. The k8s 
+inventory plugin has been deprecated and will be removed in release 6.0.0. This
+ feature will be removed from kubernetes.core in version 6.0.0. Deprecation 
+warnings can be disabled by setting deprecation_warnings=False in ansible.cfg.
+2025-05-18 16:30:56,825 p=4135089 u=ubuntu n=ansible INFO| [DEPRECATION WARNING]: community.okd.openshift has been deprecated. The 
+openshift inventory plugin has been deprecated and will be removed in release 
+5.0.0. This feature will be removed from community.okd in version 5.0.0. 
+Deprecation warnings can be disabled by setting deprecation_warnings=False in 
+ansible.cfg.
+2025-05-18 16:32:41,515 p=4135396 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/test.proxmox.yml with
+ansible_collections.community.general.plugins.inventory.proxmox plugin: 596 Server Error:
+Connection timed out for url: https://192.168.1.47:8006/api2/json/nodes/monty/lxc
+
+2025-05-18 16:32:41,515 p=4135396 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/test.proxmox.yml with auto
+plugin: 596 Server Error: Connection timed out for url:
+https://192.168.1.47:8006/api2/json/nodes/monty/lxc
+
+2025-05-18 16:32:41,516 p=4135396 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/test.proxmox.yml with yaml
+plugin: Plugin configuration YAML file, not YAML inventory
+
+2025-05-18 16:32:41,516 p=4135396 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/test.proxmox.yml with ini
+plugin: Invalid host pattern 'plugin:' supplied, ending in ':' is not allowed, this
+character is reserved to provide a port.
+
+2025-05-18 16:32:41,516 p=4135396 u=ubuntu n=ansible WARNING| [WARNING]: Unable to parse /home/ubuntu/.ansible/inventory/test.proxmox.yml as an
+inventory source
+
+2025-05-18 16:32:41,516 p=4135396 u=ubuntu n=ansible WARNING| [WARNING]: No inventory was parsed, only implicit localhost is available
+
+2025-05-18 16:32:41,519 p=4135396 u=ubuntu n=ansible INFO| {
+    "_meta": {
+        "hostvars": {}
+    },
+    "all": {
+        "children": [
+            "ungrouped"
+        ]
+    }
+}
+2025-05-18 16:34:29,514 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]: Could not evaluate host filter !nodes:monty for host WordPress - template
+error while templating string: unexpected char '!' at 2. String: {{!nodes:monty}}.
+unexpected char '!' at 2
+
+2025-05-18 16:34:30,101 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]: Could not evaluate host filter !nodes:monty for host goldpiholeUbuntu -
+template error while templating string: unexpected char '!' at 2. String:
+{{!nodes:monty}}. unexpected char '!' at 2
+
+2025-05-18 16:34:30,463 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]: Could not evaluate host filter !nodes:monty for host GitLab - template error
+while templating string: unexpected char '!' at 2. String: {{!nodes:monty}}. unexpected
+char '!' at 2
+
+2025-05-18 16:34:30,811 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]: Could not evaluate host filter !nodes:monty for host ineed2pBackup - template
+error while templating string: unexpected char '!' at 2. String: {{!nodes:monty}}.
+unexpected char '!' at 2
+
+2025-05-18 16:34:31,177 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]: Could not evaluate host filter !nodes:monty for host tegam1.12.2022 - template
+error while templating string: unexpected char '!' at 2. String: {{!nodes:monty}}.
+unexpected char '!' at 2
+
+2025-05-18 16:34:31,549 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]: Could not evaluate host filter !nodes:monty for host cpuWinMiner - template
+error while templating string: unexpected char '!' at 2. String: {{!nodes:monty}}.
+unexpected char '!' at 2
+
+2025-05-18 16:34:31,916 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]: Could not evaluate host filter !nodes:monty for host cpuWimk80 - template
+error while templating string: unexpected char '!' at 2. String: {{!nodes:monty}}.
+unexpected char '!' at 2
+
+2025-05-18 16:34:32,282 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]: Could not evaluate host filter !nodes:monty for host Calibre - template error
+while templating string: unexpected char '!' at 2. String: {{!nodes:monty}}. unexpected
+char '!' at 2
+
+2025-05-18 16:34:32,649 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]: Could not evaluate host filter !nodes:monty for host cpuWinMinerBackUp -
+template error while templating string: unexpected char '!' at 2. String:
+{{!nodes:monty}}. unexpected char '!' at 2
+
+2025-05-18 16:34:33,015 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]: Could not evaluate host filter !nodes:monty for host workingCuda - template
+error while templating string: unexpected char '!' at 2. String: {{!nodes:monty}}.
+unexpected char '!' at 2
+
+2025-05-18 16:34:33,391 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]: Could not evaluate host filter !nodes:monty for host andrewsCUDAHELL -
+template error while templating string: unexpected char '!' at 2. String:
+{{!nodes:monty}}. unexpected char '!' at 2
+
+2025-05-18 16:34:33,757 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]: Could not evaluate host filter !nodes:monty for host GolemBackup - template
+error while templating string: unexpected char '!' at 2. String: {{!nodes:monty}}.
+unexpected char '!' at 2
+
+2025-05-18 16:34:34,123 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]: Could not evaluate host filter !nodes:monty for host winMiner2 - template
+error while templating string: unexpected char '!' at 2. String: {{!nodes:monty}}.
+unexpected char '!' at 2
+
+2025-05-18 16:34:34,496 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]: Could not evaluate host filter !nodes:monty for host poposCudaworkingbackup -
+template error while templating string: unexpected char '!' at 2. String:
+{{!nodes:monty}}. unexpected char '!' at 2
+
+2025-05-18 16:34:34,860 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]: Could not evaluate host filter !nodes:monty for host yeedauggold - template
+error while templating string: unexpected char '!' at 2. String: {{!nodes:monty}}.
+unexpected char '!' at 2
+
+2025-05-18 16:34:35,232 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]: Could not evaluate host filter !nodes:monty for host nestedXP - template error
+while templating string: unexpected char '!' at 2. String: {{!nodes:monty}}. unexpected
+char '!' at 2
+
+2025-05-18 16:34:35,600 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]: Could not evaluate host filter !nodes:monty for host VM 102 - template error
+while templating string: unexpected char '!' at 2. String: {{!nodes:monty}}. unexpected
+char '!' at 2
+
+2025-05-18 16:34:35,970 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]: Could not evaluate host filter !nodes:monty for host cudahell07102022 -
+template error while templating string: unexpected char '!' at 2. String:
+{{!nodes:monty}}. unexpected char '!' at 2
+
+2025-05-18 16:34:36,336 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]: Could not evaluate host filter !nodes:monty for host Galactica - template
+error while templating string: unexpected char '!' at 2. String: {{!nodes:monty}}.
+unexpected char '!' at 2
+
+2025-05-18 16:34:37,119 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]: Could not evaluate host filter !nodes:monty for host Copy-of-VM-freshWindows -
+template error while templating string: unexpected char '!' at 2. String:
+{{!nodes:monty}}. unexpected char '!' at 2
+
+2025-05-18 16:34:37,827 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]: Could not evaluate host filter !nodes:monty for host MockMail - template error
+while templating string: unexpected char '!' at 2. String: {{!nodes:monty}}. unexpected
+char '!' at 2
+
+2025-05-18 16:34:38,191 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]: Could not evaluate host filter !nodes:monty for host VM-Guest - template error
+while templating string: unexpected char '!' at 2. String: {{!nodes:monty}}. unexpected
+char '!' at 2
+
+2025-05-18 16:34:38,765 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]: Could not evaluate host filter !nodes:monty for host WinDeath - template error
+while templating string: unexpected char '!' at 2. String: {{!nodes:monty}}. unexpected
+char '!' at 2
+
+2025-05-18 16:34:39,155 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]: Could not evaluate host filter !nodes:monty for host GitLab-Testing - template
+error while templating string: unexpected char '!' at 2. String: {{!nodes:monty}}.
+unexpected char '!' at 2
+
+2025-05-18 16:34:39,539 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]: Could not evaluate host filter !nodes:monty for host VM 144 - template error
+while templating string: unexpected char '!' at 2. String: {{!nodes:monty}}. unexpected
+char '!' at 2
+
+2025-05-18 16:34:39,923 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]: Could not evaluate host filter !nodes:monty for host CodeServ - template error
+while templating string: unexpected char '!' at 2. String: {{!nodes:monty}}. unexpected
+char '!' at 2
+
+2025-05-18 16:34:41,005 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]: Could not evaluate host filter !nodes:monty for host Ansible - template error
+while templating string: unexpected char '!' at 2. String: {{!nodes:monty}}. unexpected
+char '!' at 2
+
+2025-05-18 16:34:41,747 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]: Could not evaluate host filter !nodes:monty for host transformers - template
+error while templating string: unexpected char '!' at 2. String: {{!nodes:monty}}.
+unexpected char '!' at 2
+
+2025-05-18 16:34:42,122 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]: Could not evaluate host filter !nodes:monty for host gitlab - template error
+while templating string: unexpected char '!' at 2. String: {{!nodes:monty}}. unexpected
+char '!' at 2
+
+2025-05-18 16:34:42,713 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]: Could not evaluate host filter !nodes:monty for host piholeUbuntu - template
+error while templating string: unexpected char '!' at 2. String: {{!nodes:monty}}.
+unexpected char '!' at 2
+
+2025-05-18 16:34:43,327 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]: Could not evaluate host filter !nodes:monty for host HomeAssistantSupervised -
+template error while templating string: unexpected char '!' at 2. String:
+{{!nodes:monty}}. unexpected char '!' at 2
+
+2025-05-18 16:34:43,712 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]: Could not evaluate host filter !nodes:monty for host emailNot - template error
+while templating string: unexpected char '!' at 2. String: {{!nodes:monty}}. unexpected
+char '!' at 2
+
+2025-05-18 16:34:44,304 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]: Could not evaluate host filter !nodes:monty for host jellyfin - template error
+while templating string: unexpected char '!' at 2. String: {{!nodes:monty}}. unexpected
+char '!' at 2
+
+2025-05-18 16:34:44,678 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]: Could not evaluate host filter !nodes:monty for host BoxyProxy - template
+error while templating string: unexpected char '!' at 2. String: {{!nodes:monty}}.
+unexpected char '!' at 2
+
+2025-05-18 16:34:45,054 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]: Could not evaluate host filter !nodes:monty for host AndrewsTwilightSparkle -
+template error while templating string: unexpected char '!' at 2. String:
+{{!nodes:monty}}. unexpected char '!' at 2
+
+2025-05-18 16:34:45,435 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]: Could not evaluate host filter !nodes:monty for host HoneyGain - template
+error while templating string: unexpected char '!' at 2. String: {{!nodes:monty}}.
+unexpected char '!' at 2
+
+2025-05-18 16:34:45,987 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]: Could not evaluate host filter !nodes:monty for host haosova-6.4 - template
+error while templating string: unexpected char '!' at 2. String: {{!nodes:monty}}.
+unexpected char '!' at 2
+
+2025-05-18 16:34:46,366 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]: Could not evaluate host filter !nodes:monty for host gpt4allvm - template
+error while templating string: unexpected char '!' at 2. String: {{!nodes:monty}}.
+unexpected char '!' at 2
+
+2025-05-18 16:34:46,755 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]: Could not evaluate host filter !nodes:monty for host winrip1 - template error
+while templating string: unexpected char '!' at 2. String: {{!nodes:monty}}. unexpected
+char '!' at 2
+
+2025-05-18 16:34:47,136 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]: Could not evaluate host filter !nodes:monty for host winripBackup - template
+error while templating string: unexpected char '!' at 2. String: {{!nodes:monty}}.
+unexpected char '!' at 2
+
+2025-05-18 16:34:47,514 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]: Could not evaluate host filter !nodes:monty for host golemscooby - template
+error while templating string: unexpected char '!' at 2. String: {{!nodes:monty}}.
+unexpected char '!' at 2
+
+2025-05-18 16:34:47,896 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]: Could not evaluate host filter !nodes:monty for host honeyGain - template
+error while templating string: unexpected char '!' at 2. String: {{!nodes:monty}}.
+unexpected char '!' at 2
+
+2025-05-18 16:34:48,293 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]: Could not evaluate host filter !nodes:monty for host winrip2 - template error
+while templating string: unexpected char '!' at 2. String: {{!nodes:monty}}. unexpected
+char '!' at 2
+
+2025-05-18 16:34:48,688 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]: Could not evaluate host filter !nodes:monty for host winrip - template error
+while templating string: unexpected char '!' at 2. String: {{!nodes:monty}}. unexpected
+char '!' at 2
+
+2025-05-18 16:34:49,077 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]: Could not evaluate host filter !nodes:monty for host TeenageMutantNinjaTunnel
+- template error while templating string: unexpected char '!' at 2. String:
+{{!nodes:monty}}. unexpected char '!' at 2
+
+2025-05-18 16:34:49,872 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]: Could not evaluate host filter !nodes:monty for host preFillSteamLanche -
+template error while templating string: unexpected char '!' at 2. String:
+{{!nodes:monty}}. unexpected char '!' at 2
+
+2025-05-18 16:34:50,243 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]: Could not evaluate host filter !nodes:monty for host preFillLanche - template
+error while templating string: unexpected char '!' at 2. String: {{!nodes:monty}}.
+unexpected char '!' at 2
+
+2025-05-18 16:34:50,841 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]: Could not evaluate host filter !nodes:monty for host portainer - template
+error while templating string: unexpected char '!' at 2. String: {{!nodes:monty}}.
+unexpected char '!' at 2
+
+2025-05-18 16:34:51,451 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]: Could not evaluate host filter !nodes:monty for host lancache - template error
+while templating string: unexpected char '!' at 2. String: {{!nodes:monty}}. unexpected
+char '!' at 2
+
+2025-05-18 16:34:52,048 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]: Could not evaluate host filter !nodes:monty for host torProxy - template error
+while templating string: unexpected char '!' at 2. String: {{!nodes:monty}}. unexpected
+char '!' at 2
+
+2025-05-18 16:34:52,436 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]: Could not evaluate host filter !nodes:monty for host ineed2p - template error
+while templating string: unexpected char '!' at 2. String: {{!nodes:monty}}. unexpected
+char '!' at 2
+
+2025-05-18 16:34:52,818 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]: Could not evaluate host filter !nodes:monty for host ecoGolem - template error
+while templating string: unexpected char '!' at 2. String: {{!nodes:monty}}. unexpected
+char '!' at 2
+
+2025-05-18 16:36:16,621 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/test.proxmox.yml with
+ansible_collections.community.general.plugins.inventory.proxmox plugin: 596 Server Error:
+Connection timed out for url: https://192.168.1.47:8006/api2/json/nodes/monty/lxc
+
+2025-05-18 16:36:16,621 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/test.proxmox.yml with auto
+plugin: 596 Server Error: Connection timed out for url:
+https://192.168.1.47:8006/api2/json/nodes/monty/lxc
+
+2025-05-18 16:36:16,621 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/test.proxmox.yml with yaml
+plugin: Plugin configuration YAML file, not YAML inventory
+
+2025-05-18 16:36:16,621 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/test.proxmox.yml with ini
+plugin: Invalid host pattern 'plugin:' supplied, ending in ':' is not allowed, this
+character is reserved to provide a port.
+
+2025-05-18 16:36:16,621 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]: Unable to parse /home/ubuntu/.ansible/inventory/test.proxmox.yml as an
+inventory source
+
+2025-05-18 16:36:16,621 p=4136453 u=ubuntu n=ansible WARNING| [WARNING]: No inventory was parsed, only implicit localhost is available
+
+2025-05-18 16:36:16,642 p=4136453 u=ubuntu n=ansible INFO| {
+    "_meta": {
+        "hostvars": {}
+    },
+    "all": {
+        "children": [
+            "ungrouped"
+        ]
+    }
+}
+2025-05-18 16:45:45,418 p=4139716 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/inventory.proxmox.yml with
+ansible_collections.community.general.plugins.inventory.proxmox plugin: 596 Server Error:
+Connection timed out for url: https://192.168.1.47:8006/api2/json/nodes/monty/lxc
+
+2025-05-18 16:45:45,418 p=4139716 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/inventory.proxmox.yml with
+auto plugin: 596 Server Error: Connection timed out for url:
+https://192.168.1.47:8006/api2/json/nodes/monty/lxc
+
+2025-05-18 16:45:45,418 p=4139716 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/inventory.proxmox.yml with
+yaml plugin: Plugin configuration YAML file, not YAML inventory
+
+2025-05-18 16:45:45,418 p=4139716 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse /home/ubuntu/.ansible/inventory/inventory.proxmox.yml with
+ini plugin: Invalid host pattern 'plugin:' supplied, ending in ':' is not allowed, this
+character is reserved to provide a port.
+
+2025-05-18 16:45:45,418 p=4139716 u=ubuntu n=ansible WARNING| [WARNING]: Unable to parse /home/ubuntu/.ansible/inventory/inventory.proxmox.yml as an
+inventory source
+
+2025-05-18 16:45:45,418 p=4139716 u=ubuntu n=ansible WARNING| [WARNING]: No inventory was parsed, only implicit localhost is available
+
+2025-05-18 16:45:45,422 p=4139716 u=ubuntu n=ansible INFO| {
+    "_meta": {
+        "hostvars": {}
+    },
+    "all": {
+        "children": [
+            "ungrouped"
+        ]
+    }
+}
+2025-05-18 16:46:41,363 p=4140599 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse
+/home/ubuntu/.ansible/inventory/minimal.proxmox.yml with
+ansible_collections.community.general.plugins.inventory.proxmox plugin:
+Incorrect plugin name in file: proxmox
+
+2025-05-18 16:46:41,364 p=4140599 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse
+/home/ubuntu/.ansible/inventory/minimal.proxmox.yml with auto plugin: inventory
+config '/home/ubuntu/.ansible/inventory/minimal.proxmox.yml' specifies unknown
+plugin 'proxmox'
+
+2025-05-18 16:46:41,364 p=4140599 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse
+/home/ubuntu/.ansible/inventory/minimal.proxmox.yml with yaml plugin: Plugin
+configuration YAML file, not YAML inventory
+
+2025-05-18 16:46:41,364 p=4140599 u=ubuntu n=ansible WARNING| [WARNING]:  * Failed to parse
+/home/ubuntu/.ansible/inventory/minimal.proxmox.yml with ini plugin: Invalid
+host pattern 'plugin:' supplied, ending in ':' is not allowed, this character
+is reserved to provide a port.
+
+2025-05-18 16:46:41,364 p=4140599 u=ubuntu n=ansible WARNING| [WARNING]: Unable to parse /home/ubuntu/.ansible/inventory/minimal.proxmox.yml
+as an inventory source
+
+2025-05-18 16:46:41,364 p=4140599 u=ubuntu n=ansible WARNING| [WARNING]: No inventory was parsed, only implicit localhost is available
+
+2025-05-18 16:46:41,367 p=4140599 u=ubuntu n=ansible INFO| {
+    "_meta": {
+        "hostvars": {}
+    },
+    "all": {
+        "children": [
+            "ungrouped"
+        ]
+    }
+}

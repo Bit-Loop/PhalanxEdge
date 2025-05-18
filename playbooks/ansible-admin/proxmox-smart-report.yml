@@ -1,0 +1,107 @@
+# unicorn pam ssh -a -C -- ansible-playbook playbooks/ansible-admin/proxmox-smart-report.yml -f 30
+# unicorn pam ssh -c hsv -C -- ansible-playbook playbooks/ansible-admin/proxmox-smart-report.yml -f 30 -l pm1.hsv
+- hosts: localhost
+  tasks:
+    - name: Get local file
+      set_fact:
+        local_file: "~/ProxmoxSmartReport.{{ ansible_date_time.date + '-' + ansible_date_time.hour + ansible_date_time.minute + ansible_date_time.second }}.csv"
+
+    - name: Create local file
+      delegate_to: localhost
+      shell: |
+        echo "Hostname,Drive,Model,Power On Hours, Total LBAs Written" > {{ local_file }}
+
+- hosts:
+    - pm
+  strategy: free
+  user: root
+  vars:
+    report_file: "{{ hostvars['localhost']['local_file'] }}"
+  tasks:
+    - name: Scan for all devices using smartctl
+      command: smartctl --scan
+      register: scan_output
+      changed_when: false
+      ignore_errors: yes
+
+    - name: Set fact for devices
+      set_fact:
+        devices: "{{ scan_output.stdout_lines | map('regex_replace', '^(\\/dev\\/\\S+)\\s+-d\\s+(\\S+).+$', '\\1:\\2') | list }}"
+
+    - name: Get Smart Data for each device
+      shell: "smartctl -a {{ item.split(':')[0] }} | grep -E 'Device Model|Power_On_Hours|Wear_Leveling_Count|Percent_Lifetime_Remain'"
+      register: smart_output
+      with_items: "{{ devices }}"
+      ignore_errors: yes
+
+    - name: Add disk to CSV
+      delegate_to: localhost
+      shell: |
+        echo "{{ inventory_hostname }},{{ item.item | regex_replace(',', '-') }},{{ item.stdout_lines[0] | regex_replace('Device Model:','') | trim }},{{ item.stdout_lines[1].split('-')[1] | trim }},{{ item.stdout_lines[2].split('-')[-1] | trim }}" >> {{ report_file }}
+      with_items: "{{ smart_output.results }}"
+      when: item.rc == 0
+      ignore_errors: yes
+
+- hosts:
+    - pm
+  strategy: free
+  user: root
+  vars:
+    report_file: "{{ hostvars['localhost']['local_file'] }}"
+  tasks:
+    - name: Scan for all devices using smartctl
+      command: smartctl --scan
+      register: scan_output
+      changed_when: false
+      ignore_errors: yes
+
+    - name: Set fact for devices
+      set_fact:
+        devices: "{{ scan_output.stdout_lines | map('regex_replace', '^(\\/dev\\/\\S+)\\s+-d\\s+(\\S+).+$', '\\1:\\2') | list }}"
+      ignore_errors: yes
+
+    - name: Get Smart Data for each device
+      shell: "smartctl -a {{ item.split(':')[0] }} -d {{ item.split(':')[1] }} | grep -E 'Device Model|Power_On_Hours|Wear_Leveling_Count|Percent_Lifetime_Remain'"
+      register: smart_output
+      with_items: "{{ devices }}"
+      ignore_errors: yes
+
+    - name: Add raid drive to CSV
+      delegate_to: localhost
+      shell: |
+        echo "{{ inventory_hostname }},{{ item.item | regex_replace(',', '-') }},{{ item.stdout_lines[0] | regex_replace('Device Model:','') | trim }},{{ item.stdout_lines[1].split('-')[1] | trim }},{{ item.stdout_lines[2].split('-')[-1] | trim }}" >> {{ report_file }}
+      with_items: "{{ smart_output.results }}"
+      when: item.rc == 0
+      ignore_errors: yes
+
+- hosts:
+    - pm
+  strategy: free
+  user: root
+  vars:
+    report_file: "{{ hostvars['localhost']['local_file'] }}"
+  tasks:
+    - name: Scan for all devices using smartctl
+      command: smartctl --scan
+      register: scan_output
+      changed_when: false
+      ignore_errors: yes
+
+    - name: Set fact for devices
+      set_fact:
+        devices: "{{ scan_output.stdout_lines | map('regex_replace', '^(\\/dev\\/\\S+)\\s+-d\\s+(\\S+).+$', '\\1:\\2') | list }}"
+      ignore_errors: yes
+
+    - name: Get Smart Data for each device
+      shell: "smartctl -a {{ item.split(':')[0] }} | grep -E 'Model Number|Power On Hours|Available Spare:'"
+      register: smart_output
+      with_items: "{{ devices }}"
+      ignore_errors: yes
+
+    - name: Add NVMe drive to CSV
+      delegate_to: localhost
+      shell: |
+        echo "{{ inventory_hostname }},{{ item.item | regex_replace(',', '-') }},{{ item.stdout_lines[0] | regex_replace('Model Number:','') | trim }},{{ item.stdout_lines[2].split(':')[1] | regex_replace(',','') | trim }},{{ item.stdout_lines[1].split(':')[1] | regex_replace(',','') | trim }}" >> {{ report_file }}
+      with_items: "{{ smart_output.results }}"
+      when: item.rc == 0
+      ignore_errors: yes

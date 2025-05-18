@@ -1,0 +1,27 @@
+- name: copy proxmox check
+  copy:
+    src: check_proxmox.py
+    dest: /usr/lib/nagios/plugins/check_proxmox
+    mode: 0755
+
+  when: ansible_distribution_release != "stretch"
+  tags: [ "proxmox", "proxmox::monitored", "common", "common::monitored", "common::monitored::proxmox" ]
+
+- name: copy proxmox check (PVE 5)
+  copy:
+    src: check_proxmox_stretch.py
+    dest: /usr/lib/nagios/plugins/check_proxmox
+    mode: 0755
+
+  when: ansible_distribution_release == "stretch"
+  tags: [ "proxmox", "proxmox::monitored", "common", "common::monitored", "common::monitored::proxmox" ]
+
+- name: Export Proxmox VM data for PhalanxEdge
+  include_role:
+    name: proxmox/inventory
+  tags: phalanxedge
+
+- name: Add Proxmox VMs to Tailscale inventory
+  include_tasks: phalanxedge_integration.yml
+  when: enable_phalanxedge | default(true)
+  tags: phalanxedge

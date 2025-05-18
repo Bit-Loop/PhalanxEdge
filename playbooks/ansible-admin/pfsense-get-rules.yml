@@ -1,0 +1,23 @@
+# unicorn pam ssh -c hsv -C -- ansible-playbook playbooks/ansible-admin/pfsense-get-rules.yml -l pf.hsv
+# optionally, add -e get_managed=y to get managed rules
+- hosts: pfsense
+  user: root
+  tasks:
+    - name: set fact for managed rules
+      set_fact:
+        get_managed: "{{ get_managed|default('n')}}"
+
+    - name: Determine latest backup
+      shell: ls -t /cf/conf/backup/ | head -n 2 | tail -n 1
+      register: latest_backup
+
+    - name: Get latest backup
+      fetch:
+        src: /cf/conf/backup/{{ latest_backup.stdout }}
+        dest: /tmp/
+        flat: yes
+
+    - name: Process backup with scripts/pfsense_ruler.py
+      command: python3 scripts/pfsense_ruler.py /tmp/{{ latest_backup.stdout }} {{ get_managed }}
+      delegate_to: localhost
+      register: pfsense_rules

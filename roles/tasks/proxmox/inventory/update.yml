@@ -1,0 +1,27 @@
+# filepath: /home/ubuntu/.ansible/tasks/proxmox/inventory/update.yml
+---
+- name: Get Proxmox VMs
+  community.general.proxmox_vm_info:
+    api_host: "{{ ansible_host }}"
+    api_user: "{{ proxmox_api_user }}"
+    api_password: "{{ proxmox_api_password }}"
+  register: proxmox_vms
+  delegate_to: localhost
+
+- name: Update inventory with Proxmox VMs
+  template:
+    src: "{{ ansible_dir }}/templates/proxmox_vms_inventory.j2"
+    dest: "{{ ansible_dir }}/inventory/proxmox_vms.yml"
+    mode: '0640'
+  vars:
+    vms: "{{ proxmox_vms.proxmox_vms }}"
+    timestamp: "{{ ansible_date_time.iso8601 }}"
+  delegate_to: localhost
+
+- name: Run PhalanxEdge Tailscale integration
+  include_tasks: "{{ ansible_dir }}/tasks/phalanxedge/inventory_integration.yml"
+  vars:
+    inventory_files:
+      - "{{ ansible_dir }}/inventory/proxmox_vms.yml"
+      - "{{ ansible_dir }}/inventory/tailscale.yml"
+  when: integrate_with_phalanxedge | default(true)

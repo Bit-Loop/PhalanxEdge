@@ -1,0 +1,20 @@
+# filepath: /home/ubuntu/.ansible/tasks/proxmox/cluster/join.yml
+---
+- name: Get cluster status
+  shell: pvecm status
+  register: cluster_status
+  changed_when: false
+  failed_when: false
+
+- name: Join cluster (if not already joined)
+  block:
+    - name: Get master fingerprint
+      shell: pvecm list | grep -i {{ hostvars[cluster_master].ansible_host }} | awk '{print $2}'
+      register: master_fingerprint
+      changed_when: false
+      delegate_to: "{{ cluster_master }}"
+      
+    - name: Join the cluster
+      shell: pvecm add {{ hostvars[cluster_master].ansible_host }} -fingerprint {{ master_fingerprint.stdout }}
+      when: master_fingerprint.stdout | length > 0
+  when: "'no cluster' in cluster_status.stdout"

@@ -1,0 +1,35 @@
+# unicorn pam ssh -a -C -- ansible-playbook playbooks/ansible-admin/proxmox-version-report.yml -f 30
+- hosts: localhost
+  tasks:
+    - name: Get local file
+      set_fact:
+        local_file: "~/ProxmoxVersionReport.{{ ansible_date_time.date + '-' + ansible_date_time.hour + ansible_date_time.minute + ansible_date_time.second }}.csv"
+
+    - name: Create local file
+      delegate_to: localhost
+      shell: |
+        echo "Hostname,Proxmox Version,Kernel Version,OS Version" > {{ local_file }}
+
+- hosts:
+    - pm
+  strategy: free
+  user: root
+  vars:
+    report_file: "{{ hostvars['localhost']['local_file'] }}"
+  tasks:
+    - name: Get pveversion
+      shell: pveversion | awk -F'/' '/pve-manager/ {split($2,a," "); print a[1]}'
+      register: pveversion
+
+    - name: Get Kernel version
+      shell: uname -r
+      register: kernel_version
+
+    - name: Get OS version
+      shell: cat /etc/os-release | grep 'VERSION=' | awk -F'=' '{print $2}' | tr -d '"'
+      register: os_release
+
+    - name: Generate Version Report
+      delegate_to: localhost
+      shell: |
+        echo '{{ inventory_hostname }},{{ pveversion.stdout }},{{ kernel_version.stdout }},{{ os_release.stdout }}' >> {{ report_file }}

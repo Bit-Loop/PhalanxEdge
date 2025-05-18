@@ -1,0 +1,62 @@
+---
+# Tasks for collecting system information from Proxmox nodes
+
+- name: Get CPU information
+  shell: |
+    lscpu | grep -E 'Model name|^CPU\(s\)|Core\(s\) per socket|Socket\(s\)|MHz'
+  register: cpu_info
+  changed_when: false
+  
+- name: Get memory information
+  shell: free -h
+  register: memory_info
+  changed_when: false
+
+- name: Get disk usage
+  shell: df -h | grep -v tmpfs | grep -v udev
+  register: disk_usage
+  changed_when: false
+  
+- name: Get PVE version
+  shell: pveversion -v
+  register: pve_version
+  changed_when: false
+  
+- name: Get kernel information
+  shell: uname -a
+  register: kernel_info
+  changed_when: false
+  
+- name: Get uptime
+  shell: uptime
+  register: uptime_info
+  changed_when: false
+  
+- name: Get loaded kernel modules
+  shell: lsmod | head -10
+  register: kernel_modules
+  changed_when: false
+  
+- name: Get running services status
+  shell: systemctl status pve* | grep Active
+  register: pve_services
+  changed_when: false
+  failed_when: false
+  
+- name: Collect network interfaces
+  shell: |
+    ip -o addr show | grep -v "inet6" | awk '{print $2, $4}'
+  register: network_interfaces
+  changed_when: false
+  
+- name: Set system facts
+  set_fact:
+    node_info:
+      cpu: "{{ cpu_info.stdout_lines }}"
+      memory: "{{ memory_info.stdout_lines }}"
+      disk: "{{ disk_usage.stdout_lines }}"
+      version: "{{ pve_version.stdout_lines }}"
+      kernel: "{{ kernel_info.stdout }}"
+      uptime: "{{ uptime_info.stdout }}"
+      network: "{{ network_interfaces.stdout_lines }}"
+      services: "{{ pve_services.stdout_lines | default([]) }}"

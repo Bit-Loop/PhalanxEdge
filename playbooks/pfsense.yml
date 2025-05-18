@@ -1,0 +1,5 @@
+- hosts: pfsense
+  user: root
+  roles:
+    - common-vars
+    - pfsense
