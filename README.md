@@ -1,5 +1,7 @@
 # PhalanxEdge Core - ProxMesh Manager
 
+# CURRENTLY A MANJOR WIP
+
 **PhalanxEdge Core - ProxMesh Manager** is---ehensive automation suite designed for edge computing infrastructure with Proxmox virtualization environments and secure remote access via Tailscale mesh networking. It provides robust tooling for Proxmox infrastructure deployment, management, monitoring, and integration with mesh networking for distributed edge computing scenarios.
 
 ---
@@ -76,7 +78,7 @@ graph TD
 - **CSV Reporting:** Generates reports with disk health metrics and operational data
 - **Status Tracking:** Real-time status monitoring of virtual machines and containers with Proxmox API integration
 - **Hardware Inventory:** Complete hardware inventory of physical and virtual resources
-- **Network Status:** Tailscale mesh network monitoring via `tailscale-status.yml`
+- **Network Status:** Tailscale mesh network monitoring and ansible inventory managment via `tailscale-status.yml`
 - **Integration Ready:** Designed for extension with external monitoring systems like Prometheus
 
 ---
